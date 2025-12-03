@@ -11,23 +11,14 @@
 
 class Dfr0971 {
 public:
-    /**
-     * @param bus Pointer to i2cDevice (bit-bang)
-     * @param address 7-bit I2C address (0x58–0x5B)
-     */
-    Dfr0971(i2cDevice* bus, uint8_t address);
+    Dfr0971(i2c_bb_device_t* bus, uint8_t address);
 
-    /** Initialize the DAC module */
     void init();
-
-    /** Set channel output using raw 12-bit DAC value (0–4095) */
     void setRaw(uint8_t channel, uint16_t value);
-
-    /** Set channel output using percent (0–100%) */
     void setPercent(uint8_t channel, float percent);
 
 private:
-    i2cDevice* m_bus;
+    i2c_bb_device_t* m_bus;
     uint8_t m_addr;
 
     void writeDac(uint8_t channel, uint16_t value);
