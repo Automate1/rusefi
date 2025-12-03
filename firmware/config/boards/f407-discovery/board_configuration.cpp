@@ -8,6 +8,19 @@
 #include "dfr0971.h"      // Add this include
 #include "board_configuration.h"
 
+// DAC objects
+Dfr0971 dac1(&I2CD1, 0x58);  // module A
+/Dfr0971 dac2(&I2CD1, 0x59);  // module B (optional)
+
+void boardInitHardware() {
+    // existing board init
+    i2cStart(&I2CD1, &i2cConfig_rusefi);
+
+    // init DACs
+    dac1.init();
+    dac2.init();
+}
+
 Dfr0971 dac1(&i2c1, 0x58);   // first DFR0971 (or whatever address your DIP switch sets)
 // Dfr0971 dac2(&i2c1, 0x59);   // optional second module (remove if not used)
 
@@ -192,6 +205,12 @@ static const struct mc33810_config mc33810 = {
     // ---- Initialize external DAC modules ----
     // dac1.init();
     // dac2.init();        // only if you want two modules
+
+    i2cStart(&I2CD1, &i2cConfig_rusefi);
+
+    // init DACs
+    dac1.init();
+    //dac2.init();
 
 }
 
