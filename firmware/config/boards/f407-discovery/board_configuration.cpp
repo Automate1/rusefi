@@ -10,16 +10,7 @@
 
 // DAC objects
 Dfr0971 dac1(&I2CD1, 0x58);  // module A
-/Dfr0971 dac2(&I2CD1, 0x59);  // module B (optional)
-
-void boardInitHardware() {
-    // existing board init
-    i2cStart(&I2CD1, &i2cConfig_rusefi);
-
-    // init DACs
-    dac1.init();
-    dac2.init();
-}
+// Dfr0971 dac2(&I2CD1, 0x59);  // module B (optional)
 
 Dfr0971 dac1(&i2c1, 0x58);   // first DFR0971 (or whatever address your DIP switch sets)
 // Dfr0971 dac2(&i2c1, 0x59);   // optional second module (remove if not used)
@@ -196,21 +187,15 @@ static const struct mc33810_config mc33810 = {
 	}
 
 	// existing rusEFI F407 initialization stuff…
-    // gpio, adc, pwm, inputs, engine pins, etc.
+  // gpio, adc, pwm, inputs, engine pins, etc.
 
-    // ---- Add I2C initialization here ----
-    // i2cStart(&I2CD1, &i2cConfig_rusefi);  // already present on some boards
-    // if not present, this must be added
-
-    // ---- Initialize external DAC modules ----
-    // dac1.init();
-    // dac2.init();        // only if you want two modules
-
+  // ---- Add I2C initialization here ----
     i2cStart(&I2CD1, &i2cConfig_rusefi);
 
-    // init DACs
+    // ---- Initialize external DAC modules ----
     dac1.init();
-    //dac2.init();
+    // dac2.init();
+
 
 }
 
