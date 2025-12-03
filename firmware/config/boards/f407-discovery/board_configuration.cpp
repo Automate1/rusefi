@@ -9,7 +9,7 @@
 #include "board_configuration.h"
 
 Dfr0971 dac1(&I2CD1, 0x58);
-Dfr0971 dac2(&I2CD1, 0x59);
+// Dfr0971 dac2(&I2CD1, 0x59);
 
 static Dfr0971 dac1(&i2c1, 0x58);   // first DFR0971 (or whatever address your DIP switch sets)
 // static Dfr0971 dac2(&i2c1, 0x59);   // optional second module (remove if not used)
