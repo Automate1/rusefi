@@ -8,13 +8,11 @@
 #include "dfr0971.h"      // Add this include
 #include "board_configuration.h"
 
+extern i2c_bb_device_t i2c_bb1;
+
 // DAC objects
-Dfr0971 dac1(&I2CD1, 0x58);  // module A
-// Dfr0971 dac2(&I2CD1, 0x59);  // module B (optional)
-
-Dfr0971 dac1(&i2c1, 0x58);   // first DFR0971 (or whatever address your DIP switch sets)
-// Dfr0971 dac2(&i2c1, 0x59);   // optional second module (remove if not used)
-
+static Dfr0971 dac1(&i2c1, 0x58);   // first DFR0971 (or whatever address your DIP switch sets)
+// static Dfr0971 dac2(&i2c1, 0x59);   // optional second module (remove if not used)
 
 static void setDefaultFrankensoStepperIdleParameters() {
 	engineConfiguration->idle.stepperDirectionPin = Gpio::E10;
@@ -190,7 +188,7 @@ static const struct mc33810_config mc33810 = {
   // gpio, adc, pwm, inputs, engine pins, etc.
 
   // ---- Add I2C initialization here ----
-    i2cStart(&I2CD1, &i2cConfig_rusefi);
+  //  i2cStart(&I2CD1, &i2cConfig_rusefi);
 
     // ---- Initialize external DAC modules ----
     dac1.init();
