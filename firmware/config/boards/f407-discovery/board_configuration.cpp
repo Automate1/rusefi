@@ -185,11 +185,11 @@ static const struct mc33810_config mc33810 = {
     // gpio, adc, pwm, inputs, engine pins, etc.
 
     // ---- Add I2C initialization here ----
-    i2cStart(&I2CD1, &i2cConfig_rusefi);  // already present on some boards
+    // i2cStart(&I2CD1, &i2cConfig_rusefi);  // already present on some boards
     // if not present, this must be added
 
     // ---- Initialize external DAC modules ----
-    dac1.init();
+    // dac1.init();
     // dac2.init();        // only if you want two modules
 
 }
