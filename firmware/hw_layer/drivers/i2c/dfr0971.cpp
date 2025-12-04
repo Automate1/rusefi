@@ -2,11 +2,12 @@
 
 #define DFR0971_MAX_VALUE 4095
 
-Dfr0971::Dfr0971(i2c_bb_device_t* bus, uint8_t address)
+Dfr0971::Dfr0971(BitbangI2c* bus, uint8_t address)
     : m_bus(bus), m_addr(address) {}
 
 void Dfr0971::init() {
-    writeDac(0, 0);   // test write
+    // Test write — writes 0 to channel 0
+    writeDac(0, 0);
 }
 
 void Dfr0971::setRaw(uint8_t channel, uint16_t value) {
@@ -21,7 +22,7 @@ void Dfr0971::setPercent(uint8_t channel, float percent) {
     if (percent > 100.0f) percent = 100.0f;
 
     uint16_t val = (uint16_t)((percent / 100.0f) * DFR0971_MAX_VALUE);
-    writeDac(channel, val);
+    setRaw(channel, val);
 }
 
 void Dfr0971::writeDac(uint8_t channel, uint16_t value) {
@@ -31,5 +32,7 @@ void Dfr0971::writeDac(uint8_t channel, uint16_t value) {
     buf[0] = 0x30 | ((value >> 8) & 0x0F);
     buf[1] = value & 0xFF;
 
-    i2c_bb_writeReg(m_bus, m_addr, reg, buf, 2);
+    // Bit-bang I2C call
+    m_bus->writeRegister(m_addr, reg, buf[0]);
+    m_bus->writeRegister(m_addr, reg + 1, buf[1]);
 }
