@@ -8,10 +8,16 @@
 #include "dfr0971.h"      // Add this include
 #include "i2c_bb.h"
 #include "board_configuration.h"
+// #include "lua.hpp"
+
+enum brain_pin_e {
+    PB8 = 0xB08,
+    PB9 = 0xB09
+};
 
 // #define GPIOB ((GPIO_TypeDef*)0x40020400)  // base address for GPIOB
-#define GPIO_PIN_8 (1 << 8)
-#define GPIO_PIN_9 (1 << 9)
+// #define GPIO_PIN_8 (1 << 8)
+// #define GPIO_PIN_9 (1 << 9)
 
 // Bit-bang I2C instance
 static BitbangI2c bbI2C;
