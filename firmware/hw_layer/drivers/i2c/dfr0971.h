@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdint.h>
 #include "i2c_bb.h"  // bit-bang I2C for f407-discovery
 
 /**
@@ -8,8 +9,6 @@
  * Designed for rusEFI f407-discovery board using i2c_bb.
  * Supports addresses 0x58–0x5B set via DIP switches.
  */
-
-#include <stdint.h>
 
 class BitbangI2c;
 
