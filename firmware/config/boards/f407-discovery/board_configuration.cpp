@@ -9,7 +9,7 @@
 #include "i2c_bb.h"
 #include "board_configuration.h"
 
-#define GPIOB ((GPIO_TypeDef*)0x40020400)  // base address for GPIOB
+// #define GPIOB ((GPIO_TypeDef*)0x40020400)  // base address for GPIOB
 #define GPIO_PIN_8 (1 << 8)
 #define GPIO_PIN_9 (1 << 9)
 
