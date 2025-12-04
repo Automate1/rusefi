@@ -195,7 +195,8 @@ static const struct mc33810_config mc33810 = {
   // gpio, adc, pwm, inputs, engine pins, etc.
 
 // Configure the pins used for bit-bang I2C
-    bbI2C.init(GPIOB, GPIO_PIN_8, GPIOB, GPIO_PIN_9);   // <-- example pins; use your actual SCL + SDA pins
+    //bbI2C.init(GPIOB, GPIO_PIN_8, GPIOB, GPIO_PIN_9);   // <-- example pins; use your actual SCL + SDA pins
+    bbI2C.init(PB8, PB9);
   
     // ---- Initialize external DAC modules ----
     dac1.init();
