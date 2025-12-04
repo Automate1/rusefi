@@ -5,13 +5,17 @@
 #include "pch.h"
 #include "board_overrides.h"
 
-#include "rusefi_generated_f407-discovery.h"   // <--- must come first
+// #include "rusefi_generated_f407-discovery.h"   // <--- must come first
 
 #include "board_configuration.h"
 #include "i2c_bb.h"
 #include "dfr0971.h"
 
 // #include "lua.hpp"
+
+// brain_pin_e is the type used by BitbangI2c
+static constexpr brain_pin_e MY_PB8 = static_cast<brain_pin_e>(8  + 1*16); // PB8
+static constexpr brain_pin_e MY_PB9 = static_cast<brain_pin_e>(9  + 1*16); // PB9
 
 //enum brain_pin_e {
 //    PB8 = 0xB08,
@@ -205,7 +209,7 @@ static const struct mc33810_config mc33810 = {
 
 // Configure the pins used for bit-bang I2C
     //bbI2C.init(GPIOB, GPIO_PIN_8, GPIOB, GPIO_PIN_9);   // <-- example pins; use your actual SCL + SDA pins
-    bbI2C.init(PB8, PB9);
+    bbI2C.init(MY_PB8, MY_PB9);
   
     // ---- Initialize external DAC modules ----
     dac1.init();
