@@ -208,10 +208,4 @@ void setup_custom_board_overrides() {
 	custom_board_DefaultConfiguration = f407_discovery_DefaultConfiguration;
 }
 
-// Lua registration
-void registerDACLuaFunctions(lua_State* L) {
-    extern int lua_setDAC1(lua_State* L);
-    // extern int lua_setDAC2(lua_State* L);
-    lua_register(L, "setDAC1", lua_setDAC1);
-    // lua_register(L, "setDAC2", lua_setDAC2);
-}
+// Lua registration (add later)
