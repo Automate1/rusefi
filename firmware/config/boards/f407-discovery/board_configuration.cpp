@@ -8,11 +8,13 @@
 #include "dfr0971.h"      // Add this include
 #include "i2c_bb.h"
 #include "board_configuration.h"
+#include "rusefi_generated_f407-discovery.h"
+
 // #include "lua.hpp"
 
-enum brain_pin_e {
-    PB8 = 0xB08,
-    PB9 = 0xB09
+//enum brain_pin_e {
+//    PB8 = 0xB08,
+//    PB9 = 0xB09
 };
 
 // #define GPIOB ((GPIO_TypeDef*)0x40020400)  // base address for GPIOB
