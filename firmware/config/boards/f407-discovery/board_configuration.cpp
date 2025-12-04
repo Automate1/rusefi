@@ -6,13 +6,16 @@
 #include "board_overrides.h"
 
 #include "dfr0971.h"      // Add this include
+#include "i2c_bb.h"
 #include "board_configuration.h"
 
-extern i2c_bb_device_t i2c_bb1;
+static BitbangI2c bbI2C;
 
 // DAC objects
-static Dfr0971 dac1(&i2c1, 0x58);   // first DFR0971 (or whatever address your DIP switch sets)
-// static Dfr0971 dac2(&i2c1, 0x59);   // optional second module (remove if not used)
+Dfr0971 dac1(&bbI2C, 0x58);   // DIP switch A
+// Dfr0971 dac2(&bbI2C, 0x59);   // optional second module
+
+
 
 static void setDefaultFrankensoStepperIdleParameters() {
 	engineConfiguration->idle.stepperDirectionPin = Gpio::E10;
@@ -187,9 +190,9 @@ static const struct mc33810_config mc33810 = {
 	// existing rusEFI F407 initialization stuff…
   // gpio, adc, pwm, inputs, engine pins, etc.
 
-  // ---- Add I2C initialization here ----
-  //  i2cStart(&I2CD1, &i2cConfig_rusefi);
-
+// Configure the pins used for bit-bang I2C
+    bbI2C.init(GPIOB_8, GPIOB_9);   // <-- example pins; use your actual SCL + SDA pins
+  
     // ---- Initialize external DAC modules ----
     dac1.init();
     // dac2.init();
