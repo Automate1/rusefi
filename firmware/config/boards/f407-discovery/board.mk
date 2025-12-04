@@ -1,7 +1,6 @@
 # List of all the board related files.
 // BOARDCPPSRC = $(BOARD_DIR)/board_configuration.cpp
-BOARDCPPSRC = $(BOARD_DIR)/board_configuration.cpp \
-               $(RUSEFI_ROOT)/hw_layer/drivers/i2c/dfr0971.cpp
+BOARDCPPSRC = $(BOARD_DIR)/board_configuration.cpp $(RUSEFI_ROOT)/hw_layer/drivers/i2c/dfr0971.cpp
 
 # MCU defines
 DDEFS += -DSTM32F407xx
