@@ -11,14 +11,14 @@
 
 class Dfr0971 {
 public:
-    Dfr0971(i2c_bb_device_t* bus, uint8_t address);
+    Dfr0971(BitbangI2c* bus, uint8_t address);
 
     void init();
     void setRaw(uint8_t channel, uint16_t value);
     void setPercent(uint8_t channel, float percent);
 
 private:
-    i2c_bb_device_t* m_bus;
+    BitbangI2c* m_bus;
     uint8_t m_addr;
 
     void writeDac(uint8_t channel, uint16_t value);
