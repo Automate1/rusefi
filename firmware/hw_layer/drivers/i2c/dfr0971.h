@@ -9,17 +9,28 @@
  * Supports addresses 0x58–0x5B set via DIP switches.
  */
 
+#include <stdint.h>
+
+class BitbangI2c;
+
 class Dfr0971 {
 public:
+    // Constructor: pass BitbangI2c object and I2C address
     Dfr0971(BitbangI2c* bus, uint8_t address);
 
+    // Initialize DAC (optional: reset or configure)
     void init();
-    void setRaw(uint8_t channel, uint16_t value);
+
+    // Set DAC channel output as percentage (0.0–100.0)
     void setPercent(uint8_t channel, float percent);
 
 private:
     BitbangI2c* m_bus;
-    uint8_t m_addr;
+    uint8_t m_address;
 
-    void writeDac(uint8_t channel, uint16_t value);
+    // Convert percentage to raw 12-bit DAC value
+    uint16_t percentToValue(float percent);
+
+    // Write 12-bit value to a specific channel
+    void writeChannel(uint8_t channel, uint16_t value);
 };
