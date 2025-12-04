@@ -8,13 +8,14 @@
 #include "dfr0971.h"      // Add this include
 #include "i2c_bb.h"
 #include "board_configuration.h"
+#include "stm32f4xx_hal.h"
 
+// Bit-bang I2C instance
 static BitbangI2c bbI2C;
 
 // DAC objects
 Dfr0971 dac1(&bbI2C, 0x58);   // DIP switch A
-// Dfr0971 dac2(&bbI2C, 0x59);   // optional second module
-
+// Dfr0971 dac2(&bbI2C, 0x59);   // DIP switch B (optional second module)
 
 
 static void setDefaultFrankensoStepperIdleParameters() {
@@ -191,16 +192,23 @@ static const struct mc33810_config mc33810 = {
   // gpio, adc, pwm, inputs, engine pins, etc.
 
 // Configure the pins used for bit-bang I2C
-    bbI2C.init(GPIOB_8, GPIOB_9);   // <-- example pins; use your actual SCL + SDA pins
+    bbI2C.init(GPIOB, GPIO_PIN_8, GPIOB, GPIO_PIN_9);   // <-- example pins; use your actual SCL + SDA pins
   
     // ---- Initialize external DAC modules ----
     dac1.init();
     // dac2.init();
-
 
 }
 
 void setup_custom_board_overrides() {
 	custom_board_InitHardware = f407_discovery_boardInitHardware;
 	custom_board_DefaultConfiguration = f407_discovery_DefaultConfiguration;
+}
+
+// Lua registration
+void registerDACLuaFunctions(lua_State* L) {
+    extern int lua_setDAC1(lua_State* L);
+    // extern int lua_setDAC2(lua_State* L);
+    lua_register(L, "setDAC1", lua_setDAC1);
+    // lua_register(L, "setDAC2", lua_setDAC2);
 }
