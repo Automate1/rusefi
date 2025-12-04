@@ -15,7 +15,7 @@
 //enum brain_pin_e {
 //    PB8 = 0xB08,
 //    PB9 = 0xB09
-};
+//};
 
 // #define GPIOB ((GPIO_TypeDef*)0x40020400)  // base address for GPIOB
 // #define GPIO_PIN_8 (1 << 8)
