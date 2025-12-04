@@ -5,10 +5,11 @@
 #include "pch.h"
 #include "board_overrides.h"
 
-#include "dfr0971.h"      // Add this include
-#include "i2c_bb.h"
+#include "rusefi_generated_f407-discovery.h"   // <--- must come first
+
 #include "board_configuration.h"
-#include "rusefi_generated_f407-discovery.h"
+#include "i2c_bb.h"
+#include "dfr0971.h"
 
 // #include "lua.hpp"
 
