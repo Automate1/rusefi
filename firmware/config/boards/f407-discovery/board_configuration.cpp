@@ -27,7 +27,7 @@ static constexpr brain_pin_e MY_PB9 = static_cast<brain_pin_e>(9  + 1*16); // PB
 // #define GPIO_PIN_9 (1 << 9)
 
 // Bit-bang I2C instance
-static BitbangI2c bbI2C;
+BitbangI2c bbI2C;
 
 // DAC objects
 Dfr0971 dac1(&bbI2C, 0x58);   // DIP switch A
