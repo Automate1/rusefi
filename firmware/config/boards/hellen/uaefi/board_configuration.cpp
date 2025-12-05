@@ -13,7 +13,7 @@
 #include "board_overrides.h"
 #include "connectors/generated_board_pin_names.h"
 
-#include "hw_layer/drivers/dfr0971/dfr0971.h"
+#include "dfr0971.h"
 
 extern BitbangI2c i2c1;
 
