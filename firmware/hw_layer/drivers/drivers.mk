@@ -8,7 +8,8 @@ HW_LAYER_DRIVERS_INC = \
 	$(DRIVERS_DIR)/sent \
 	$(DRIVERS_DIR)/serial \
 	$(DRIVERS_DIR)/i2c \
-	$(DRIVERS_DIR)/led
+	$(DRIVERS_DIR)/led \
+  $(DRIVERS_DIR)/dfr0971
 
 HW_LAYER_DRIVERS_CORE = \
 
@@ -38,4 +39,5 @@ HW_LAYER_DRIVERS_CPP = \
 	$(DRIVERS_DIR)/gpio/l9779.cpp \
 	$(DRIVERS_DIR)/gpio/protected_gpio.cpp \
 	$(DRIVERS_DIR)/sent/sent_hw_icu.cpp \
-	$(DRIVERS_DIR)/led/WS2812.cpp
+	$(DRIVERS_DIR)/led/WS2812.cpp \
+	$(DRIVERS_DIR)/dfr0971/dfr0971.cpp
