@@ -13,6 +13,25 @@
 #include "board_overrides.h"
 #include "connectors/generated_board_pin_names.h"
 
+#include "hw_layer/drivers/dfr0971/dfr0971.h"
+
+extern BitbangI2c i2c1;
+
+// Two devices for 4 analog outputs
+Dfr0971 dac1(&i2c1, 0x60); // first device
+Dfr0971 dac2(&i2c1, 0x61); // second device
+
+Dfr0971* dfrDacs[2] = { &dac1, &dac2 };
+
+void updateDfr0971AnalogOutputs() {
+    for (int out = 0; out < 4; out++) {
+        uint16_t value = getVirtualOutputValue(out); // 0..4095
+        int dacIndex = out / 2;      // 0 or 1
+        int channel = out % 2;       // 0 or 1
+        dfrDacs[dacIndex]->setOutput(channel, value);
+    }
+}
+
 static void setInjectorPins() {
 	engineConfiguration->injectionPins[0] = Gpio::MM100_INJ1;
 	engineConfiguration->injectionPins[1] = Gpio::MM100_INJ2;
