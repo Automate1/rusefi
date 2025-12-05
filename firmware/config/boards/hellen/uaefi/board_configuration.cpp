@@ -25,7 +25,7 @@ Dfr0971* dfrDacs[2] = { &dac1, &dac2 };
 
 void updateDfr0971AnalogOutputs() {
     for (int out = 0; out < 4; out++) {
-        uint16_t value = getVirtualOutputValue(out); // 0..4095
+        uint16_t value = 0; // getVirtualOutputValue(out); // 0..4095
         int dacIndex = out / 2;      // 0 or 1
         int channel = out % 2;       // 0 or 1
         dfrDacs[dacIndex]->setOutput(channel, value);
