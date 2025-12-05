@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           ref: ${{ github.ref }}   # ensures the workflow checks out your AnalogOutput branch
-          fetch-depth: 0           # ensures full clone, so all files (like dfr0971.cpp) are present
+          # fetch-depth: 0           # ensures full clone, so all files (like dfr0971.cpp) are present
           submodules: true
 
       - name: Initialize submodules
@@ -67,8 +67,15 @@ jobs:
       - name: Build firmware
         working-directory: ./firmware/
         run: |
-          bash bin/compile.sh ${{ env.BOARD_META_PATH }} build_both_bundles --output-sync=recurse
+          bash bin/compile.sh ${{ env.BOARD_META_PATH }} build_both_bundles --output-sync=recurse | tee build_output.txt
 
+      - name: Upload build logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build_output.txt
+          
       - name: Create objdump text file
         working-directory: ./firmware/build
         run: arm-none-eabi-objdump -d rusefi.elf > rusefi.txt
