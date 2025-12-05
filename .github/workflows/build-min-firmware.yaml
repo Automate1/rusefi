@@ -67,11 +67,21 @@ jobs:
       - name: Build firmware
         working-directory: ./firmware/
         run: |
-          bash bin/compile.sh ${{ env.BOARD_META_PATH }} build_both_bundles --output-sync=recurse | tee build_output.txt
+          LOG="build_output.txt"
+    
+          # Run the compile script, pipe stdout+stderr to tee, and capture exit code
+          bash bin/compile.sh config/boards/hellen/uaefi/meta-info.env build_both_bundles --output-sync=recurse 2>&1 | tee "$LOG"
+          EXIT_CODE=${PIPESTATUS[0]}   # Capture the exit code of the compile script
+    
+          # Save exit code to use in the next step
+          echo "EXIT_CODE=$EXIT_CODE" >> $GITHUB_ENV
+    
+          # Fail the step so Actions knows the build failed
+          exit $EXIT_CODE
 
       - name: Upload build logs
-        if: failure()
-        uses: actions/upload-artifact@v4
+        if: ${{ env.EXIT_CODE != '0' }}
+        uses: actions/upload-artifact@v5
         with:
           name: build-log
           path: build_output.txt
