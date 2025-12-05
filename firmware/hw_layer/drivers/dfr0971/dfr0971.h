@@ -1,5 +1,5 @@
 #pragma once
-#include "bitbang_i2c.h"
+#include "i2c_bb.h"
 #include <stdint.h>
 
 /**
