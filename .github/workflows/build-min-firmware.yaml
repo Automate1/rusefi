@@ -66,26 +66,32 @@ jobs:
 
       - name: Build firmware
         working-directory: ./firmware/
+        continue-on-error: true
         run: |
-          LOG="build_output.txt"
-    
+          LOGFILE=build_output.txt    
+          
           # Run the compile script, pipe stdout+stderr to tee, and capture exit code
-          bash bin/compile.sh config/boards/hellen/uaefi/meta-info.env build_both_bundles --output-sync=recurse 2>&1 | tee "$LOG"
-          EXIT_CODE=${PIPESTATUS[0]}   # Capture the exit code of the compile script
-    
+          {
+          bash bin/compile.sh config/boards/hellen/uaefi/meta-info.env build_both_bundles --output-sync=recurse
+          } &> >(tee "$LOGFILE")
+          
           # Save exit code to use in the next step
-          echo "EXIT_CODE=$EXIT_CODE" >> $GITHUB_ENV
-    
+          echo "exit_code=$?" >> $GITHUB_OUTPUT 
+             
           # Fail the step so Actions knows the build failed
           exit $EXIT_CODE
 
       - name: Upload build logs
-        if: ${{ env.EXIT_CODE != '0' }}
-        uses: actions/upload-artifact@v5
+        if: ${{ steps.build_firmware.outputs.exit_code != '0' }}
+        uses: actions/upload-artifact@v4
         with:
           name: build-log
           path: build_output.txt
           
+      - name: Fail job if build failed
+        if: ${{ steps.build_firmware.outputs.exit_code != '0' }}
+        run: exit 1
+        
       - name: Create objdump text file
         working-directory: ./firmware/build
         run: arm-none-eabi-objdump -d rusefi.elf > rusefi.txt
