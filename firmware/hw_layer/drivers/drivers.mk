@@ -19,7 +19,8 @@ HW_LAYER_DRIVERS_CORE_CPP = \
 	$(DRIVERS_DIR)/sent/sent.cpp \
 	$(DRIVERS_DIR)/i2c/i2c_bb.cpp \
 	$(DRIVERS_DIR)/can/auto_generated_can_category.cpp \
-	$(DRIVERS_DIR)/can/can_msg_tx.cpp
+	$(DRIVERS_DIR)/can/can_msg_tx.cpp \
+  $(DRIVERS_DIR)/dfr0971/dfr0971.cpp
 
 HW_LAYER_DRIVERS =
 
@@ -39,5 +40,4 @@ HW_LAYER_DRIVERS_CPP = \
 	$(DRIVERS_DIR)/gpio/l9779.cpp \
 	$(DRIVERS_DIR)/gpio/protected_gpio.cpp \
 	$(DRIVERS_DIR)/sent/sent_hw_icu.cpp \
-	$(DRIVERS_DIR)/led/WS2812.cpp \
-	$(DRIVERS_DIR)/dfr0971/dfr0971.cpp
+	$(DRIVERS_DIR)/led/WS2812.cpp
