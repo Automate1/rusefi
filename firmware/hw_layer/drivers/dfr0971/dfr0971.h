@@ -6,8 +6,12 @@
  * Driver for DFRobot DFR0971 12-bit DAC
  * Supports 2 channels per device
  */
+
+class BitbangI2c;
+
 class Dfr0971 {
 public:
+	// Constructor: pass BitbangI2c object and I2C address
     Dfr0971(BitbangI2c *i2cBus, uint8_t i2cAddress);
 
     /**
