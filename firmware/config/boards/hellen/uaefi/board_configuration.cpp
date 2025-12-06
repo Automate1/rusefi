@@ -22,7 +22,7 @@ BitbangI2c bbI2C;
 Dfr0971 dac1(&bbI2C, 0x60); // first device
 Dfr0971 dac2(&bbI2C, 0x61); // second device
 
-Dfr0971* dfrDacs[2] = { &dac1, &dac2 };
+//Dfr0971* dfrDacs[2] = { &dac1, &dac2 };
 
 void updateDfr0971AnalogOutputs() {
     for (int out = 0; out < 4; out++) {
