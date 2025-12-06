@@ -20,7 +20,7 @@ HW_LAYER_DRIVERS_CORE_CPP = \
 	$(DRIVERS_DIR)/i2c/i2c_bb.cpp \
 	$(DRIVERS_DIR)/can/auto_generated_can_category.cpp \
 	$(DRIVERS_DIR)/can/can_msg_tx.cpp \
-  $(DRIVERS_DIR)/dfr0971/dfr0971.cpp
+	$(DRIVERS_DIR)/dfr0971/dfr0971.cpp
 
 HW_LAYER_DRIVERS =
 
