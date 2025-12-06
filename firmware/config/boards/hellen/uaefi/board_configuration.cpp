@@ -24,13 +24,12 @@ Dfr0971 dac2(&bbI2C, 0x61); // second device
 
 //Dfr0971* dfrDacs[2] = { &dac1, &dac2 };
 
-void updateDfr0971AnalogOutputs() {
-    for (int out = 0; out < 4; out++) {
-        uint16_t value = 0; // getVirtualOutputValue(out); // 0..4095
-        int dacIndex = out / 2;      // 0 or 1
-        int channel = out % 2;       // 0 or 1
-        dfrDacs[dacIndex]->setOutput(channel, value);
-    }
+void updateDac1(uint8_t channel, uint16_t value) {
+    dac1.setOutput(channel, value);
+}
+
+void updateDac2(uint8_t channel, uint16_t value) {
+    dac2.setOutput(channel, value);
 }
 
 static void setInjectorPins() {
