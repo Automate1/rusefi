@@ -24,14 +24,6 @@ Dfr0971 dac2(&bbI2C, 0x61); // second device
 
 //Dfr0971* dfrDacs[2] = { &dac1, &dac2 };
 
-void updateDac1(uint8_t channel, uint16_t value) {
-    dac1.setOutput(channel, value);
-}
-
-void updateDac2(uint8_t channel, uint16_t value) {
-    dac2.setOutput(channel, value);
-}
-
 static void setInjectorPins() {
 	engineConfiguration->injectionPins[0] = Gpio::MM100_INJ1;
 	engineConfiguration->injectionPins[1] = Gpio::MM100_INJ2;
