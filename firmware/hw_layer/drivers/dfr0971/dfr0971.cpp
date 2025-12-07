@@ -1,6 +1,6 @@
 #include "dfr0971.h"
 
-Dfr0971::Dfr0971(BitbangI2c *i2cBus, uint8_t i2cAddress) {
+Dfr0971::Dfr0971(BitbangI2c* i2cBus, uint8_t i2cAddress) {
     i2c = i2cBus;
     address = i2cAddress;
 }

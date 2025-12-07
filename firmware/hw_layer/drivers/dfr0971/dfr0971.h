@@ -12,7 +12,7 @@ class BitbangI2c;
 class Dfr0971 {
 public:
 	// Constructor: pass BitbangI2c object and I2C address
-    Dfr0971(BitbangI2c *i2cBus, uint8_t i2cAddress);
+    Dfr0971(BitbangI2c* i2cBus, uint8_t i2cAddress);
 
     /**
      * Set output for a DAC channel
@@ -22,6 +22,6 @@ public:
     void setOutput(uint8_t channel, uint16_t value);
 
 private:
-    BitbangI2c *i2c;
+    BitbangI2c* i2c;
     uint8_t address;
 };
