@@ -10,8 +10,7 @@
 
 #include <stddef.h>   // for size_t
 #include <stdint.h>
-#include "connectors/generated_board_pin_names.h"
-
+// #include "connectors/generated_board_pin_names.h"
 class BitbangI2c {
 public:
 	// Initialize the I2C driver
