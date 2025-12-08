@@ -225,13 +225,23 @@ int boardGetAnalogInputDiagnostic(adc_channel_e hwChannel, float voltage) {
 
 #ifndef EFI_BOOTLOADER   // Bootloader-safe: exclude driver code in bootloader
 
-#ifdef USE_DFR0971      // Optional driver macro: define in your build if needed
+#ifdef USE_DFR0971      // Optional driver macro: define in your build
 
 #include "dfr0971.h"
 #include "i2c_bb.h"
 
+// --------------------------------------------------
+// Wrapper for uaEFI: allows using GPIO pins instead of brain_pin_e
+class BitbangI2cUaEFI : public BitbangI2c {
+public:
+    BitbangI2cUaEFI(uint8_t sdaPin, uint8_t sclPin)
+        : BitbangI2c(static_cast<brain_pin_e>(sdaPin), static_cast<brain_pin_e>(sclPin))
+    {}
+};
+// --------------------------------------------------
+
 // Bitbang I2C bus: SDA=C7=PE14, SCL=C6=PE13
-BitbangI2c dfrI2C(GPIOE_14, GPIOE_13);
+BitbangI2cUaEFI dfrI2C(GPIOE_14, GPIOE_13);
 
 // Two DAC objects with separate I2C addresses
 Dfr0971 dac1(&dfrI2C, 0x60);   // DAC1 address
@@ -244,11 +254,11 @@ void updateDac1(uint8_t channel, uint16_t value) {
 
 // void updateDac2(uint8_t channel, uint16_t value) {
 //    dac2.setOutput(channel, value);
-// }
+}
 
 #else  // USE_DFR0971 not defined
 
-// Stubs to allow calls to update functions without linking driver
+// Stubs to allow calls without including driver
 inline void updateDac1(uint8_t, uint16_t) {}
 // inline void updateDac2(uint8_t, uint16_t) {}
 
