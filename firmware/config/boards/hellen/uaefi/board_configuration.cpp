@@ -233,38 +233,39 @@ int boardGetAnalogInputDiagnostic(adc_channel_e hwChannel, float voltage) {
 
 #ifdef USE_DFR0971
 
-// UA-EFI wrapper for BitbangI2c that initializes pins
-class BitbangI2cUaEFI : public BitbangI2c {
-public:
-    BitbangI2cUaEFI(int sclPin, int sdaPin) {
-        init((brain_pin_e)sclPin, (brain_pin_e)sdaPin);
+// Initialize the I2C bus on UA-EFI pins C6/C7 → PE13/PE14
+static BitbangI2c dfrI2C;
+static bool dfrI2C_initialized = false;
+
+static void initDfrI2C() {
+    if (!dfrI2C_initialized) {
+        dfrI2C.init(GPIO_E13, GPIO_E14);  // brain_pin_e valid here
+        dfrI2C_initialized = true;
     }
-};
+}
 
-// Map C6/C7 to MCU pins PE13/PE14
-static BitbangI2cUaEFI dfrI2C(GPIO_E13, GPIO_E14);
-
-// Example: two DACs with different addresses
+// Two DACs
 static Dfr0971 dfrDac1(&dfrI2C, 0x60);
 static Dfr0971 dfrDac2(&dfrI2C, 0x61);
 
-// Functions to update individual DAC outputs
 void updateDac1(uint8_t channel, uint16_t value) {
+    initDfrI2C();
     dfrDac1.setOutput(channel, value);
 }
 
 void updateDac2(uint8_t channel, uint16_t value) {
+    initDfrI2C();
     dfrDac2.setOutput(channel, value);
 }
 
-#else  // USE_DFR0971 not defined
+#else
 
 inline void updateDac1(uint8_t, uint16_t) {}
 inline void updateDac2(uint8_t, uint16_t) {}
 
 #endif // USE_DFR0971
 
-#else  // EFI_BOOTLOADER
+#else
 
 inline void updateDac1(uint8_t, uint16_t) {}
 inline void updateDac2(uint8_t, uint16_t) {}
