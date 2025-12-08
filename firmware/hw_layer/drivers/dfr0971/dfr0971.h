@@ -1,13 +1,12 @@
 #pragma once
-#include <stdint.h>
-#include "i2c_bb.h"
-
+#include <cstdint>
 
 /**
  * Driver for DFRobot DFR0971 12-bit DAC
  * Supports 2 channels per device
  */
 
+class BitbangI2c;  // forward declaration is enough for pointer usage
 
 class Dfr0971 {
 public:
