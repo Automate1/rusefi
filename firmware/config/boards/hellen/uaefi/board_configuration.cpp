@@ -6,23 +6,15 @@
  * @author Andrey Belomutskiy, (c) 2012-2023
  */
 
+#define USE_DFR0971
+
+#include <stdint.h>
 #include "pch.h"
 #include "defaults.h"
 #include "hellen_meta.h"
 #include "hellen_leds_100.cpp"
 #include "board_overrides.h"
 #include "connectors/generated_board_pin_names.h"
-
-#include "dfr0971.h"
-
-// Bit-bang I2C instance
-BitbangI2c bbI2C;
-
-// Two devices for 4 analog outputs
-Dfr0971 dac1(&bbI2C, 0x60); // first device
-Dfr0971 dac2(&bbI2C, 0x61); // second device
-
-//Dfr0971* dfrDacs[2] = { &dac1, &dac2 };
 
 static void setInjectorPins() {
 	engineConfiguration->injectionPins[0] = Gpio::MM100_INJ1;
@@ -229,3 +221,43 @@ int boardGetAnalogInputDiagnostic(adc_channel_e hwChannel, float voltage) {
 
 	return 0;
 }
+
+
+#ifndef EFI_BOOTLOADER   // Bootloader-safe: exclude driver code in bootloader
+
+#ifdef USE_DFR0971      // Optional driver macro: define in your build if needed
+
+#include "dfr0971.h"
+#include "i2c_bb.h"
+
+// Bitbang I2C bus: SDA=C7=PE14, SCL=C6=PE13
+BitbangI2c dfrI2C(GPIOE_14, GPIOE_13);
+
+// Two DAC objects with separate I2C addresses
+Dfr0971 dac1(&dfrI2C, 0x60);   // DAC1 address
+// Dfr0971 dac2(&dfrI2C, 0x61);   // DAC2 address
+
+// Independent DAC update functions
+void updateDac1(uint8_t channel, uint16_t value) {
+    dac1.setOutput(channel, value);
+}
+
+// void updateDac2(uint8_t channel, uint16_t value) {
+//    dac2.setOutput(channel, value);
+// }
+
+#else  // USE_DFR0971 not defined
+
+// Stubs to allow calls to update functions without linking driver
+inline void updateDac1(uint8_t, uint16_t) {}
+// inline void updateDac2(uint8_t, uint16_t) {}
+
+#endif // USE_DFR0971
+
+#else  // EFI_BOOTLOADER
+
+// Bootloader stubs: do nothing
+inline void updateDac1(uint8_t, uint16_t) {}
+// inline void updateDac2(uint8_t, uint16_t) {}
+
+#endif // EFI_BOOTLOADER
