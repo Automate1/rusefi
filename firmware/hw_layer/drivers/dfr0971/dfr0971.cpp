@@ -1,6 +1,7 @@
 
-#include <stdint.h>   // use C-style header to match rusEFI
 #include "dfr0971.h"
+#include "i2c_bb.h"   // only to know write() exists
+#include <cstdint>
 
 Dfr0971::Dfr0971(BitbangI2c* bus, uint8_t addr)
     : i2c(bus), address(addr)
