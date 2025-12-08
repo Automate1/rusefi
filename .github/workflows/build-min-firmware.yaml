@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           ref: ${{ github.ref }}   # ensures the workflow checks out your AnalogOutput branch
-          fetch-depth: 0           # ensures full clone, so all files (like dfr0971.cpp) are present
+          # fetch-depth: 0           # ensures full clone, so all files (like dfr0971.cpp) are present
           submodules: true
 
       - name: Initialize submodules

@@ -1,3 +1,5 @@
+#include <stdint.h>   // use C-style header to match rusEFI
+#include "i2c_bb.h"   // keep this; full BitbangI2c definition
 #include "dfr0971.h"
 #include <stdint.h>
 

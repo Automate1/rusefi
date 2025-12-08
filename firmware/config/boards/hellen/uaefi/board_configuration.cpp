@@ -8,14 +8,19 @@
 
 #define USE_DFR0971
 
-#include <stddef.h>   // for size_t
-#include <stdint.h>
 #include "pch.h"
 #include "defaults.h"
 #include "hellen_meta.h"
 #include "hellen_leds_100.cpp"
 #include "board_overrides.h"
 #include "connectors/generated_board_pin_names.h"
+
+#include <stddef.h>   // for size_t
+#include <stddef.h>       // for size_t
+#include "io_pins.h"      // Provides GPIO_E13, GPIO_E14 etc
+#include "dfr0971.h"
+#include "i2c_bb.h"
+
 
 static void setInjectorPins() {
 	engineConfiguration->injectionPins[0] = Gpio::MM100_INJ1;
@@ -229,41 +234,38 @@ int boardGetAnalogInputDiagnostic(adc_channel_e hwChannel, float voltage) {
 
 #ifdef USE_DFR0971
 
-#include "dfr0971.h"
-#include "i2c_bb.h"
-
-// -------------------------------
-// uaEFI wrapper: allows using GPIO pins instead of brain_pin_e
 class BitbangI2cUaEFI : public BitbangI2c {
 public:
-    BitbangI2cUaEFI(uint8_t sdaPin, uint8_t sclPin)
-        : BitbangI2c((brain_pin_e)sdaPin, (brain_pin_e)sclPin)
-    {}
+    BitbangI2cUaEFI(brain_pin_e sclPin, brain_pin_e sdaPin) {
+        init(sclPin, sdaPin);
+    }
 };
-// -------------------------------
+// -----------------------------
 
-// Bitbang I2C bus: SDA=C7=PE14, SCL=C6=PE13
-BitbangI2cUaEFI dfrI2C(GPIOE_14, GPIOE_13);
+// Map C6=C6/SCL -> PE13, C7=SDA -> PE14
+static BitbangI2cUaEFI dfrI2C(GPIO_E13, GPIO_E14);
 
-// Two independent DAC objects
-Dfr0971 dac1(&dfrI2C, 0x60);
-Dfr0971 dac2(&dfrI2C, 0x61);
+// Two independent DAC objects (addresses 0x60 and 0x61 for example)
+static Dfr0971 dfrDac1(&dfrI2C, 0x60);
+static Dfr0971 dfrDac2(&dfrI2C, 0x61);
 
-// Update functions for each DAC
+// -----------------------------
+// Individual DAC output setters
+// Call these functions to update a single channel on a specific DAC
 void updateDac1(uint8_t channel, uint16_t value) {
-    dac1.setOutput(channel, value);
+    dfrDac1.setOutput(channel, value);
 }
 
 void updateDac2(uint8_t channel, uint16_t value) {
-    dac2.setOutput(channel, value);
+    dfrDac2.setOutput(channel, value);
 }
 
-#else  // USE_DFR0971 not defined
+#else   // USE_DFR0971 not defined
 
 inline void updateDac1(uint8_t, uint16_t) {}
 inline void updateDac2(uint8_t, uint16_t) {}
 
-#endif // USE_DFR0971
+#endif  // USE_DFR0971
 
 #else  // EFI_BOOTLOADER
 
@@ -271,3 +273,4 @@ inline void updateDac1(uint8_t, uint16_t) {}
 inline void updateDac2(uint8_t, uint16_t) {}
 
 #endif // EFI_BOOTLOADER
+
