@@ -8,6 +8,7 @@
 
 #define USE_DFR0971
 
+#include <stddef.h>   // for size_t
 #include <stdint.h>
 #include "pch.h"
 #include "defaults.h"
@@ -223,51 +224,50 @@ int boardGetAnalogInputDiagnostic(adc_channel_e hwChannel, float voltage) {
 }
 
 
-#ifndef EFI_BOOTLOADER   // Bootloader-safe: exclude driver code in bootloader
 
-#ifdef USE_DFR0971      // Optional driver macro: define in your build
+#ifndef EFI_BOOTLOADER   // Bootloader-safe
+
+#ifdef USE_DFR0971
 
 #include "dfr0971.h"
 #include "i2c_bb.h"
 
-// --------------------------------------------------
-// Wrapper for uaEFI: allows using GPIO pins instead of brain_pin_e
+// -------------------------------
+// uaEFI wrapper: allows using GPIO pins instead of brain_pin_e
 class BitbangI2cUaEFI : public BitbangI2c {
 public:
     BitbangI2cUaEFI(uint8_t sdaPin, uint8_t sclPin)
-        : BitbangI2c(static_cast<brain_pin_e>(sdaPin), static_cast<brain_pin_e>(sclPin))
+        : BitbangI2c((brain_pin_e)sdaPin, (brain_pin_e)sclPin)
     {}
 };
-// --------------------------------------------------
+// -------------------------------
 
 // Bitbang I2C bus: SDA=C7=PE14, SCL=C6=PE13
 BitbangI2cUaEFI dfrI2C(GPIOE_14, GPIOE_13);
 
-// Two DAC objects with separate I2C addresses
-Dfr0971 dac1(&dfrI2C, 0x60);   // DAC1 address
-// Dfr0971 dac2(&dfrI2C, 0x61);   // DAC2 address
+// Two independent DAC objects
+Dfr0971 dac1(&dfrI2C, 0x60);
+Dfr0971 dac2(&dfrI2C, 0x61);
 
-// Independent DAC update functions
+// Update functions for each DAC
 void updateDac1(uint8_t channel, uint16_t value) {
     dac1.setOutput(channel, value);
 }
 
-// void updateDac2(uint8_t channel, uint16_t value) {
-//    dac2.setOutput(channel, value);
+void updateDac2(uint8_t channel, uint16_t value) {
+    dac2.setOutput(channel, value);
 }
 
 #else  // USE_DFR0971 not defined
 
-// Stubs to allow calls without including driver
 inline void updateDac1(uint8_t, uint16_t) {}
-// inline void updateDac2(uint8_t, uint16_t) {}
+inline void updateDac2(uint8_t, uint16_t) {}
 
 #endif // USE_DFR0971
 
 #else  // EFI_BOOTLOADER
 
-// Bootloader stubs: do nothing
 inline void updateDac1(uint8_t, uint16_t) {}
-// inline void updateDac2(uint8_t, uint16_t) {}
+inline void updateDac2(uint8_t, uint16_t) {}
 
 #endif // EFI_BOOTLOADER
