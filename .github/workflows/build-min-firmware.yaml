@@ -66,14 +66,13 @@ jobs:
 
       - name: Build firmware
         working-directory: ./firmware/
-        continue-on-error: true
         run: |
             bash bin/compile.sh ${{env.BOARD_META_PATH}} build_both_bundles --output-sync=recurse
 
       - name: Debug — list build outputs
         run: |
-        echo "Searching for .elf files..."
-        find . -name "*.elf" -print
+            echo "Searching for .elf files..."
+            find . -name "*.elf" -print
 
       - name: Create objdump text file
         working-directory: ./firmware/build
