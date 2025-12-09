@@ -1,13 +1,8 @@
 
 #include "dfr0971.h"
+#include "i2c_bb.h"   // include real BitbangI2c
 #include <cstdint>
 #include <cstddef>
-
-// Forward declaration of BitbangI2c methods (no board-specific pins)
-class BitbangI2c {
-public:
-    void write(uint8_t addr, const uint8_t* data, size_t size);
-};
 
 Dfr0971::Dfr0971(BitbangI2c* bus, uint8_t addr)
     : i2c(bus), address(addr)

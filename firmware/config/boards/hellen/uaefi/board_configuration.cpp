@@ -15,11 +15,12 @@
 #include "board_overrides.h"
 #include "connectors/generated_board_pin_names.h"
 
+#include <stdint.h>
 #include <stddef.h>   // for size_t
+#include "controllers/generated/rusefi_generated_uaefi.h" // auto-generated Gpio_E13/E14
 // #include "io_pins.h"      // Provides GPIO_E13, GPIO_E14 etc
 #include "i2c_bb.h"
 #include "dfr0971.h"
-
 
 static void setInjectorPins() {
 	engineConfiguration->injectionPins[0] = Gpio::MM100_INJ1;
@@ -232,24 +233,23 @@ int boardGetAnalogInputDiagnostic(adc_channel_e hwChannel, float voltage) {
 
 #ifdef USE_DFR0971
 
-// single static BitbangI2c instance used by DFR drivers
+// Static BitbangI2c instance shared by all DFR devices
 static BitbangI2c dfrI2C;
 static bool dfrI2C_initialized = false;
 
+// Initialize I2C (board-specific pins: C6/C7 -> PE13/PE14)
 static void initDfrI2C() {
     if (!dfrI2C_initialized) {
-        // UA-EFI: C6 -> PE13 (SCL), C7 -> PE14 (SDA)
-        // Gpio_E13 / Gpio_E14 are #defined ints; i2c_bb expects brain_pin_e (Gpio)
         dfrI2C.init((brain_pin_e)Gpio_E13, (brain_pin_e)Gpio_E14);
         dfrI2C_initialized = true;
     }
 }
 
-// Two separate DACs (example addresses 0x60 and 0x61)
+// Two DFR0971 devices (example addresses: 0x60, 0x61)
 static Dfr0971 dfrDac1(&dfrI2C, 0x60);
 static Dfr0971 dfrDac2(&dfrI2C, 0x61);
 
-// Per-DAC update functions (call these from your firmware)
+// Update functions — call these individually for each output
 void updateDac1(uint8_t channel, uint16_t value) {
     initDfrI2C();
     dfrDac1.setOutput(channel, value);
@@ -262,7 +262,7 @@ void updateDac2(uint8_t channel, uint16_t value) {
 
 #else  // USE_DFR0971 not defined
 
-// stubs so higher-level code can call these without #ifdefs
+// stubs so higher-level code can call them safely
 inline void updateDac1(uint8_t, uint16_t) {}
 inline void updateDac2(uint8_t, uint16_t) {}
 
