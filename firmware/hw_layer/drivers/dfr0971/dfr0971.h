@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include "i2c_bb.h"
 
 /**
  * Driver for DFRobot DFR0971 12-bit DAC
