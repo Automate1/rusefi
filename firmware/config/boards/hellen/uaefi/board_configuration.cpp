@@ -11,8 +11,9 @@
 
 #include "ch.h"
 #include "hal.h"
+#include "controllers/core/brain_pin.h"
 #include "controllers/generated/rusefi_generated_uaefi.h"
-#include "i2c_bb.h"
+#include "i2c/i2c_bb.h"
 #include "dfr0971.h"
 #include <cstdint>
 #include <cstddef>
