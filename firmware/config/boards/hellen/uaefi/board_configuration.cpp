@@ -8,11 +8,15 @@
 
 #define USE_DFR0971
 
-#include "controllers/generated/rusefi_generated_uaefi.h"  // defines brain_pin_e, Gpio_E13/E14
+
+#include "ch.h"
+#include "hal.h"
+#include "controllers/generated/rusefi_generated_uaefi.h"
 #include "i2c_bb.h"
 #include "dfr0971.h"
 #include <cstdint>
 #include <cstddef>
+
 
 #include "pch.h"
 #include "defaults.h"

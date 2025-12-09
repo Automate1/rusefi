@@ -1,9 +1,11 @@
 
-#include "controllers/generated/rusefi_generated_uaefi.h"  // defines brain_pin_e, Gpio_E13/E14
-#include "i2c_bb.h"                                 // real BitbangI2c driver
+#include "ch.h"
+#include "hal.h"
+#include "controllers/generated/rusefi_generated_uaefi.h"
+#include "i2c_bb.h"
 #include "dfr0971.h"
 #include <cstdint>
-#include <cstddef>    
+#include <cstddef>
 
 
 Dfr0971::Dfr0971(BitbangI2c* bus, uint8_t addr)
