@@ -239,7 +239,7 @@ static bool dfrI2C_initialized = false;
 // Lazy initialization of I2C bus on UA-EFI pins C6=SCL, C7=SDA → PE13/PE14
 static void initDfrI2C() {
     if (!dfrI2C_initialized) {
-        dfrI2C.init(GPIO_E13, GPIO_E14);  // board-specific pins, valid here
+        dfrI2C.init(Gpio_E13, Gpio_E14);  // board-specific pins, valid here
         dfrI2C_initialized = true;
     }
 }
