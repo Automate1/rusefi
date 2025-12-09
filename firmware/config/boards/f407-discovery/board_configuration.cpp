@@ -7,15 +7,15 @@
 
 // #include "rusefi_generated_f407-discovery.h"   // <--- must come first
 
-#include "board_configuration.h"
-#include "i2c_bb.h"
-#include "dfr0971.h"
+//#include "board_configuration.h"
+//#include "i2c_bb.h"
+//#include "dfr0971.h"
 
 // #include "lua.hpp"
 
 // brain_pin_e is the type used by BitbangI2c
-static constexpr brain_pin_e MY_PB8 = static_cast<brain_pin_e>(8  + 1*16); // PB8
-static constexpr brain_pin_e MY_PB9 = static_cast<brain_pin_e>(9  + 1*16); // PB9
+//static constexpr brain_pin_e MY_PB8 = static_cast<brain_pin_e>(8  + 1*16); // PB8
+//static constexpr brain_pin_e MY_PB9 = static_cast<brain_pin_e>(9  + 1*16); // PB9
 
 //enum brain_pin_e {
 //    PB8 = 0xB08,
@@ -27,10 +27,10 @@ static constexpr brain_pin_e MY_PB9 = static_cast<brain_pin_e>(9  + 1*16); // PB
 // #define GPIO_PIN_9 (1 << 9)
 
 // Bit-bang I2C instance
-BitbangI2c bbI2C;
+// BitbangI2c bbI2C;
 
 // DAC objects
-Dfr0971 dac1(&bbI2C, 0x58);   // DIP switch A
+// Dfr0971 dac1(&bbI2C, 0x58);   // DIP switch A
 // Dfr0971 dac2(&bbI2C, 0x59);   // DIP switch B (optional second module)
 
 
@@ -209,10 +209,10 @@ static const struct mc33810_config mc33810 = {
 
 // Configure the pins used for bit-bang I2C
     //bbI2C.init(GPIOB, GPIO_PIN_8, GPIOB, GPIO_PIN_9);   // <-- example pins; use your actual SCL + SDA pins
-    bbI2C.init(MY_PB8, MY_PB9);
+    //bbI2C.init(MY_PB8, MY_PB9);
   
     // ---- Initialize external DAC modules ----
-    dac1.init();
+    //dac1.init();
     // dac2.init();
 
 }

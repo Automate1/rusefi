@@ -8,7 +8,7 @@
 
 #define USE_DFR0971
 
-
+/*
 #include "ch.h"
 #include "hal.h"
 #include "controllers/core/brain_pin.h"
@@ -17,6 +17,7 @@
 #include "dfr0971.h"
 #include <cstdint>
 #include <cstddef>
+*/
 
 
 #include "pch.h"
@@ -232,7 +233,7 @@ int boardGetAnalogInputDiagnostic(adc_channel_e hwChannel, float voltage) {
 	return 0;
 }
 
-
+/*
 #ifndef EFI_BOOTLOADER
 
 #ifdef USE_DFR0971
@@ -279,3 +280,4 @@ inline void updateDac1(uint8_t, uint16_t) {}
 inline void updateDac2(uint8_t, uint16_t) {}
 
 #endif // EFI_BOOTLOADER
+*/
