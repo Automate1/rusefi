@@ -8,19 +8,18 @@
 
 #define USE_DFR0971
 
+#include "controllers/generated/rusefi_generated_uaefi.h"  // defines brain_pin_e, Gpio_E13/E14
+#include "i2c_bb.h"
+#include "dfr0971.h"
+#include <cstdint>
+#include <cstddef>
+
 #include "pch.h"
 #include "defaults.h"
 #include "hellen_meta.h"
 #include "hellen_leds_100.cpp"
 #include "board_overrides.h"
 #include "connectors/generated_board_pin_names.h"
-
-#include <stdint.h>
-#include <stddef.h>   // for size_t
-#include "controllers/generated/rusefi_generated_uaefi.h" // auto-generated Gpio_E13/E14
-// #include "io_pins.h"      // Provides GPIO_E13, GPIO_E14 etc
-#include "i2c_bb.h"
-#include "dfr0971.h"
 
 static void setInjectorPins() {
 	engineConfiguration->injectionPins[0] = Gpio::MM100_INJ1;
