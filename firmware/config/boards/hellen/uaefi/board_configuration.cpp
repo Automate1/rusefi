@@ -232,24 +232,23 @@ int boardGetAnalogInputDiagnostic(adc_channel_e hwChannel, float voltage) {
 
 #ifdef USE_DFR0971
 
-// Static BitbangI2c instance
+// Static I2C bus instance
 static BitbangI2c dfrI2C;
 static bool dfrI2C_initialized = false;
 
-// Lazy initialization of I2C bus
+// Lazy initialization of I2C bus on UA-EFI pins C6=SCL, C7=SDA → PE13/PE14
 static void initDfrI2C() {
     if (!dfrI2C_initialized) {
-        // Map UA-EFI pins C6=SCL, C7=SDA → PE13, PE14
-        dfrI2C.init(GPIO_E13, GPIO_E14);  // brain_pin_e known here
+        dfrI2C.init(GPIO_E13, GPIO_E14);  // board-specific pins, valid here
         dfrI2C_initialized = true;
     }
 }
 
-// Two DACs with separate I2C addresses
+// Two DACs on separate I2C addresses
 static Dfr0971 dfrDac1(&dfrI2C, 0x60);
 static Dfr0971 dfrDac2(&dfrI2C, 0x61);
 
-// Individual DAC setters
+// Functions to update individual DAC outputs
 void updateDac1(uint8_t channel, uint16_t value) {
     initDfrI2C();
     dfrDac1.setOutput(channel, value);
