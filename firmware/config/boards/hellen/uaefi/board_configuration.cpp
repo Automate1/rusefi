@@ -16,7 +16,7 @@
 #include "connectors/generated_board_pin_names.h"
 
 #include <stddef.h>   // for size_t
-#include "io_pins.h"      // Provides GPIO_E13, GPIO_E14 etc
+// #include "io_pins.h"      // Provides GPIO_E13, GPIO_E14 etc
 #include "i2c_bb.h"
 #include "dfr0971.h"
 
@@ -232,23 +232,24 @@ int boardGetAnalogInputDiagnostic(adc_channel_e hwChannel, float voltage) {
 
 #ifdef USE_DFR0971
 
-// Static I2C bus instance
+// single static BitbangI2c instance used by DFR drivers
 static BitbangI2c dfrI2C;
 static bool dfrI2C_initialized = false;
 
-// Lazy initialization of I2C bus on UA-EFI pins C6=SCL, C7=SDA → PE13/PE14
 static void initDfrI2C() {
     if (!dfrI2C_initialized) {
-        dfrI2C.init(Gpio_E13, Gpio_E14);  // board-specific pins, valid here
+        // UA-EFI: C6 -> PE13 (SCL), C7 -> PE14 (SDA)
+        // Gpio_E13 / Gpio_E14 are #defined ints; i2c_bb expects brain_pin_e (Gpio)
+        dfrI2C.init((brain_pin_e)Gpio_E13, (brain_pin_e)Gpio_E14);
         dfrI2C_initialized = true;
     }
 }
 
-// Two DACs on separate I2C addresses
+// Two separate DACs (example addresses 0x60 and 0x61)
 static Dfr0971 dfrDac1(&dfrI2C, 0x60);
 static Dfr0971 dfrDac2(&dfrI2C, 0x61);
 
-// Functions to update individual DAC outputs
+// Per-DAC update functions (call these from your firmware)
 void updateDac1(uint8_t channel, uint16_t value) {
     initDfrI2C();
     dfrDac1.setOutput(channel, value);
@@ -259,8 +260,9 @@ void updateDac2(uint8_t channel, uint16_t value) {
     dfrDac2.setOutput(channel, value);
 }
 
-#else // USE_DFR0971 not defined
+#else  // USE_DFR0971 not defined
 
+// stubs so higher-level code can call these without #ifdefs
 inline void updateDac1(uint8_t, uint16_t) {}
 inline void updateDac2(uint8_t, uint16_t) {}
 
@@ -268,6 +270,7 @@ inline void updateDac2(uint8_t, uint16_t) {}
 
 #else // EFI_BOOTLOADER
 
+// bootloader: do nothing
 inline void updateDac1(uint8_t, uint16_t) {}
 inline void updateDac2(uint8_t, uint16_t) {}
 
