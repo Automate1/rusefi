@@ -1,6 +1,7 @@
 
 #include "dfr0971.h"
 #include <cstdint>
+#include <cstddef>
 
 // Forward declaration of BitbangI2c methods (no board-specific pins)
 class BitbangI2c {
