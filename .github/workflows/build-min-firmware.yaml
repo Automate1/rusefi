@@ -72,10 +72,10 @@ jobs:
             bin/compile.sh ${{env.BOARD_META_PATH}} build_both_bundles --output-sync=recurse 2>&1 | tee build_output.log
         shell: bash
 
-      - name: Archive Compilation Logs on Failure
+      - name: Archive Compilation Logs
         uses: actions/upload-artifact@v4
         with:
-            name: compilation-logs
+            name: compilation-logs.txt
             path: build_output.log # Upload the log file generated in the previous step
             
       - name: Debug — list build outputs
