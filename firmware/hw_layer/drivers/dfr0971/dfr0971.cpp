@@ -12,6 +12,10 @@
 #include <cstddef>
 */
 
+Dfr0971::init(brain_pin_e scl, brain_pin_e sda) {
+	if (dfr_i2c.init(scl, sda)) {
+		return false;
+	}
 
 Dfr0971::Dfr0971(BitbangI2c* bus, uint8_t addr)
     : i2c(bus), address(addr)
