@@ -9,10 +9,6 @@
 
 // class BitbangI2c;  // forward declaration is sufficient
 
-private:
-	BitbangI2c dfr_i2c;
-    uint8_t address;
-
 class Dfr0971 {
 public:
 	void init(brain_pin_e scl, brain_pin_e sda);
@@ -20,4 +16,9 @@ public:
 
     // Set output on a single DAC channel
     void setOutput(uint8_t channel, uint16_t value);
+
+private:
+	BitbangI2c dfr_i2c;
+    uint8_t address;
+
 };
