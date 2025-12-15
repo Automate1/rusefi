@@ -76,7 +76,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
             name: compilation-logs.txt
-            path: build_output.log # Upload the log file generated in the previous step
+            path: firmware/build_output.log # Upload the log file generated in the previous step
             
       - name: Debug — list build outputs
         run: |
