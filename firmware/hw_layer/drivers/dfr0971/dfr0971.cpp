@@ -17,9 +17,9 @@ Dfr0971::init(brain_pin_e scl, brain_pin_e sda) {
 		return false;
 	}
 
-Dfr0971::Dfr0971(BitbangI2c* bus, uint8_t addr)
-    : i2c(bus), address(addr)
-{
+// Dfr0971::Dfr0971(BitbangI2c* bus, uint8_t addr)
+//    : i2c(bus), address(addr)
+// {
 }
 
 void Dfr0971::setOutput(uint8_t channel, uint16_t value)
