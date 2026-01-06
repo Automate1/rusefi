@@ -2,6 +2,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 import shutil
 import urllib.parse
+import re
 
 XML_FILE = "images/ScreenGeneratorTool.xml"
 OUTPUT_HTML = "index.html"
@@ -74,7 +75,7 @@ def copy_image(image_name: str):
         dst = Path(IMAGES_DIR) / src.name
         if not dst.exists():
             shutil.copy(src, dst)
-        return f"{IMAGES_DIR}/{src.name}"
+        return f"{IMAGES_DIR}/{urllib.parse.quote_plus(src.name)}"
     return None  # not found
 
 def main():
@@ -111,10 +112,10 @@ def main():
             if dialog_img:
                 img_path = copy_image(dialog_img)
                 if img_path:
-                    content_parts.append(f"<img src='{urllib.parse.quote_plus(img_path)}' alt='{dialog_title}'>")
+                    content_parts.append(f"<img src='{img_path}' alt='{dialog_title}'>")
 
             for field in dialog.findall(".//field"):
-                ui_name = field.attrib.get("uiName", "Field")
+                ui_name = re.sub(r'(?<! )\([^()]+\)$', '', field.attrib.get("uiName", "Field"))
                 tag = dialog_title.lower().replace(' ', '_') + "_" + ui_name.lower().replace(' ', '_')
                 img = field.attrib.get("imageName", "")
                 tooltip = field.attrib.get("tooltip", "")
@@ -127,7 +128,7 @@ def main():
                 if img:
                     img_path = copy_image(img)
                     if img_path:
-                        content_parts.append(f"<img src='{urllib.parse.quote_plus(img_path)}' alt='{ui_name}'>")
+                        content_parts.append(f"<img src='{img_path}' alt='{ui_name}'>")
                 content_parts.append("</div>")
 
         toc_parts.append("</ul></li>")
