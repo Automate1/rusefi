@@ -1,4 +1,5 @@
-@file obd_core.cpp
+/*
+ * @file obd_core.h
  *
  * ISO 15765-4
  * http://en.wikipedia.org/wiki/OBD-II_PIDs
@@ -19,6 +20,9 @@
  * You should have received a copy of the GNU General Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
  */
+
+
+
 
 #pragma once
 
