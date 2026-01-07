@@ -80,30 +80,11 @@ ObdStatus obdHandleRequest(uint8_t mode, uint8_t pid, ObdResponse& out) {
 // Mode 01 – Current data
 // ------------------------------------------------------------
 
+
+//void handleGetDataRequest(const CANRxFrame& rx, size_t busIndex) {
+//	int pid = rx.data8[2];
 static ObdStatus obdHandleMode01(uint8_t pid, ObdResponse& out) {
-    switch (pid) {
 
-
-
-
-
-
-
-
-
-
-
-
-
-        case PID_RPM:  // 0C – Engine RPM
-            out.numBytes = 2;
-            out.value = Sensor::getOrZero(SensorType::Rpm) * ODB_RPM_MULT; // Formula: (A * 256 + B) / 4
-            return ObdStatus::Ok;
-
-
-
-void handleGetDataRequest(const CANRxFrame& rx, size_t busIndex) {
-	int pid = rx.data8[2];
 	switch (pid) {
 	case PID_SUPPORTED_PIDS_REQUEST_01_20:
 		obdWriteSupportedPids(pid, 1, supportedPids0120, busIndex);
@@ -150,10 +131,10 @@ void handleGetDataRequest(const CANRxFrame& rx, size_t busIndex) {
         out.value = Sensor::getOrZero(SensorType::Map);
 		// obdSendValue(_1_MODE, pid, 1, Sensor::getOrZero(SensorType::Map), busIndex);
 		return ObdStatus::Ok;
-	case PID_RPM:
+	case PID_RPM:   // 0C – Engine RPM
 		out.numBytes = 2;
         out.value = Sensor::getOrZero(SensorType::Rpm) * ODB_RPM_MULT;
-		// obdSendValue(_1_MODE, pid, 2, Sensor::getOrZero(SensorType::Rpm) * ODB_RPM_MULT, busIndex);	//	rotation/min.	(A*256+B)/4
+		// obdSendValue(_1_MODE, pid, 2, Sensor::getOrZero(SensorType::Rpm) * ODB_RPM_MULT, busIndex);	//	rotation/min. (A*256+B)/4
 		return ObdStatus::Ok;
 	case PID_SPEED:
 		out.numBytes = 1;
