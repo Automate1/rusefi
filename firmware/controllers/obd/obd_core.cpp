@@ -28,12 +28,9 @@ ObdStatus obdHandleRequest(uint8_t mode, uint8_t pid, ObdResponse& out) {
 static ObdStatus obdHandleMode01(uint8_t pid, ObdResponse& out) {
     switch (pid) {
 
-        case PID_RPM:
-            // PID 0C – Engine RPM
-            // Formula: (A * 256 + B) / 4
-            out.numBytes = 2;
-            out.value =
-                Sensor::getOrZero(SensorType::Rpm) * ODB_RPM_MULT;
+        case PID_RPM:  // 0C – Engine RPM
+             out.numBytes = 2;
+            out.value = Sensor::getOrZero(SensorType::Rpm) * ODB_RPM_MULT; // Formula: (A * 256 + B) / 4
             return ObdStatus::Ok;
 
         default:
