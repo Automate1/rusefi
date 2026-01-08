@@ -58,7 +58,7 @@ void handleGetDataRequest(const CANRxFrame& rx, size_t busIndex) {
 
     ObdResponse resp;
     if (obdHandleRequest(mode, pid, resp) == ObdStatus::Ok) {
-        obdSendValue(mode, pid, resp.numBytes, resp.value, busIndex);
+        obdSendPacket(mode, pid, resp.numBytes, resp.value, busIndex);
     }
 }
 
