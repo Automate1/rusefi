@@ -107,7 +107,7 @@ public class BackgroundWizard {
                 int hash = HashUtil.hash(enabledPanel);
 
                 if (panelToShow == hash) {
-                    launchVinUI(enabledPanel);
+                    launchWizardPanel(enabledPanel);
                     WizardRunToogle = false;
                     return;
                 }
@@ -118,8 +118,9 @@ public class BackgroundWizard {
         }
     }
 
-    private static void launchVinUI(String panelToOpen) {
-        log.info("Launching VIN UI");
+    private static void launchWizardPanel(String panelToOpen) {
+        log.info("Launching wizard panel: " + panelToOpen);
+
         try {
             Frame mainFrame = TsAccess.findTsMainFrame();
             if (mainFrame == null) {
@@ -128,6 +129,14 @@ public class BackgroundWizard {
 
             // Discover top level menu buttons first (TS shows menu items only after a top level is selected)
             List<AbstractButton> topButtons = TsReflectionHelper.findTopLevelButtons(mainFrame);
+            if (topButtons.isEmpty()) {
+                // find here the class that has a button with "Setup" text
+                topButtons = TsReflectionHelper.findAlternativeButtons(mainFrame);
+                for (AbstractButton b : topButtons) {
+                    log.info("Found alternative button class: " + b.getClass().getName() + " for text: " + b.getText());
+                }
+            }
+
             if (topButtons.isEmpty()) {
                 throw new IllegalStateException("no TS top-level buttons");
             }
@@ -158,14 +167,14 @@ public class BackgroundWizard {
                             return;
                         }
                     } catch (Exception e) {
-                        log.info("Failed to invoke" + panelToOpen + e);
+                        log.info("Failed to invoke " + panelToOpen + " dialog: " + e);
                     }
                 }
             }
         } catch (Throwable t) {
-            log.error("Error launching VIN UI: " + t, t);
+            log.error("Error launching wizard panel: " + panelToOpen + ": " + t, t);
             sleep(5000);
-            launchVinUI(panelToOpen);
+            launchWizardPanel(panelToOpen);
         }
     }
 

@@ -96,6 +96,8 @@ public:
 
 	int sendFrame(const IsoTpFrameHeader & header, const uint8_t *data, int num, can_sysinterval_t timeout);
 
+	void sendFlowControl(can_sysinterval_t timeout);
+
 	can_msg_t transmit(CanTxMessage &ctfp, can_sysinterval_t timeout) {
 		if (isoHeaderByteIndex) {
 			// yes that would be truncated to byte, that's expected
@@ -180,6 +182,9 @@ public:
 		CanListener(p_rxFrameId),
 		IsoTpBase(nullptr, p_busIndex, p_rxFrameId, p_txFrameId)
 	{
+	  // not cool: this would invoke ChibiOS meaning we have to be careful where instances are declared in order to avoid
+	  // initialization too soon
+	  // todo: https://github.com/rusefi/rusefi/issues/8938
 		rxFifoBuf.clear();
 		registerCanListener(*this);
 	}
