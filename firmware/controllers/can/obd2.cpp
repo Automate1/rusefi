@@ -52,6 +52,17 @@ void obdSendPacket(int mode, int PID, int numBytes, uint32_t iValue, size_t busI
 
 #define _1_MODE 1
 
+void handleGetDataRequest(const CANRxFrame& rx, size_t busIndex) {
+    uint8_t mode = rx.data8[1];
+    uint8_t pid  = rx.data8[2];
+
+    ObdResponse resp;
+    if (obdHandleRequest(mode, pid, resp) == ObdStatus::Ok) {
+        obdSendValue(mode, pid, resp.numBytes, resp.value, busIndex);
+    }
+}
+
+/*
 static void obdSendValue(int mode, int PID, int numBytes, float value, size_t busIndex) {
 	efiAssertVoid(ObdCode::CUSTOM_ERR_6662, numBytes <= 2, "invalid numBytes");
 	int iValue = (int)efiRound(value, 1.0f);
@@ -59,7 +70,7 @@ static void obdSendValue(int mode, int PID, int numBytes, float value, size_t bu
 	iValue = maxI(minI(iValue, (numBytes == 1) ? 255 : 65535), 0);
 	obdSendPacket(mode, PID, numBytes, iValue, busIndex);
 }
-
+*/
 
 // #define MOCK_SUPPORTED_PIDS 0xffffffff
 
