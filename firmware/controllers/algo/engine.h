@@ -60,7 +60,6 @@
 #include "closed_loop_fuel.h"
 #include "long_term_fuel_trim.h"
 #include "electronic_throttle_generated.h"
-#include "pulse_input.h"
 #include "engine_cylinder.hpp"
 
 #include <functional>
