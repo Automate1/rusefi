@@ -57,7 +57,7 @@ static const int16_t supportedPids4160[] = {
 	-1
 };
 
-
+#define _1_MODE 1
 
 // Forward declarations of mode handlers
 static ObdStatus obdHandleMode01(uint8_t pid, ObdResponse& out);
