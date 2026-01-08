@@ -60,6 +60,15 @@ int IsoTpBase::sendFrame(const IsoTpFrameHeader &header, const uint8_t *data, in
 	return 0;
 }
 
+void IsoTpBase::sendFlowControl(can_sysinterval_t timeout) {
+	IsoTpFrameHeader header;
+	header.frameType = ISO_TP_FRAME_FLOW_CONTROL;
+	header.fcFlag = 0;			// = "continue to send"
+	header.blockSize = 0;		// = the remaining "frames" to be sent without flow control or delay
+	header.separationTime = 0;	// = wait 0 milliseconds, send immediately
+	sendFrame(header, nullptr, 0, timeout);
+}
+
 // returns the number of copied bytes
 int CanStreamerState::receiveFrame(const CANRxFrame &rxmsg, uint8_t *destinationBuff, int availableAtBuffer, can_sysinterval_t timeout) {
 	if (rxmsg.DLC < 1 + isoHeaderByteIndex)
@@ -147,12 +156,7 @@ TODO: refactor into child class if we ever choose to revive this logic
 
 	// according to the specs, we need to acknowledge the received multi-frame start frame
 	if (frameType == ISO_TP_FRAME_FIRST) {
-		IsoTpFrameHeader header;
-		header.frameType = ISO_TP_FRAME_FLOW_CONTROL;
-		header.fcFlag = 0;			// = "continue to send"
-		header.blockSize = 0;		// = the remaining "frames" to be sent without flow control or delay
-		header.separationTime = 0;	// = wait 0 milliseconds, send immediately
-		IsoTpBase::sendFrame(header, nullptr, 0, timeout);
+		sendFlowControl(timeout);
 	}
 
 	return numBytesToCopy;
@@ -360,10 +364,14 @@ int IsoTpRx::readTimeout(uint8_t *rxbuf, size_t *size, sysinterval_t timeout)
 		if (!rxFifoBuf.get(rxmsg, timeout)) {
 			// TODO: error codes
 			if (isFirstFrame) {
-				efiPrintf("IsoTp: rx timeout, nothing received");
-			} else {
-				efiPrintf("IsoTP: rx timeout, %d left to receive", waitingForNumBytes);
+				// this is not an error
+				//efiPrintf("IsoTp: rx timeout, nothing received");
+				*size = 0;
+				return 0;
 			}
+
+			efiPrintf("IsoTP: rx timeout, %d left to receive", waitingForNumBytes);
+			*size = buf - rxbuf;
 			return -1;
 		}
 
@@ -435,12 +443,7 @@ int IsoTpRx::readTimeout(uint8_t *rxbuf, size_t *size, sysinterval_t timeout)
 
 		// according to the specs, we need to acknowledge the received multi-frame start frame
 		if (frameType == ISO_TP_FRAME_FIRST) {
-			IsoTpFrameHeader header;
-			header.frameType = ISO_TP_FRAME_FLOW_CONTROL;
-			header.fcFlag = 0;			// = "continue to send"
-			header.blockSize = 0;		// = the remaining "frames" to be sent without flow control or delay
-			header.separationTime = 0;	// = wait 0 milliseconds, send immediately
-			sendFrame(header, nullptr, 0, timeout);
+			sendFlowControl(timeout);
 		}
 
 		waitingForNumBytes -= numBytesAvailable;
