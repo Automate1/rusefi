@@ -29,6 +29,7 @@
 #include "can.h"
 #include "can_msg_tx.h"
 #include "fuel_math.h"
+#include "obd_core.h"
 
 
 
