@@ -56,13 +56,21 @@ PCHSUB = firmware
 # Imported source files and paths
 CHIBIOS_CONTRIB = ChibiOS-Contrib
 
+SUBMODULES = $(CHIBIOS) $(CHIBIOS_CONTRIB) libfirmware
+
+ifneq ($(filter 1,$(foreach d,$(SUBMODULES),$(if $(wildcard $(d)/*),,1))),)
+$(info Submodule not found. Chibios: Invoking "git submodule update --init")
+DISCARD := $(shell git submodule update --init)
+$(info Invoked "git submodule update --init")
+endif
+
 include $(PROJECT_DIR)/common_libfirmware.mk
 
 include rusefi.mk
 
 ifeq ($(DEBUG_LEVEL_OPT),)
   # Default to a release build - but leave in debug info.  It doesn't change the hex/bin output.
-  DEBUG_LEVEL_OPT = -O2 -ggdb -g
+  DEBUG_LEVEL_OPT = -Os -ggdb -g
   # Comment the above and uncomment the line below if you want to debug the firmware (it's difficult-to-impossible
   # to debug firmware with optimization enabled).
   # DEBUG_LEVEL_OPT = -O0 -ggdb -g

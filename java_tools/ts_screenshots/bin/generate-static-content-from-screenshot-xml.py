@@ -2,6 +2,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 import shutil
 import urllib.parse
+import re
 
 XML_FILE = "images/ScreenGeneratorTool.xml"
 OUTPUT_HTML = "index.html"
@@ -74,7 +75,7 @@ def copy_image(image_name: str):
         dst = Path(IMAGES_DIR) / src.name
         if not dst.exists():
             shutil.copy(src, dst)
-        return f"{IMAGES_DIR}/{src.name}"
+        return f"{IMAGES_DIR}/{urllib.parse.quote_plus(src.name)}"
     return None  # not found
 
 def main():
@@ -97,13 +98,13 @@ def main():
 
     for keyword in root.findall(".//keyword"):
         menu_title = keyword.attrib.get("title", "Untitled Menu")
-        menu_id = f"menu_{menu_title.replace(' ', '_')}"
+        menu_id = f"menu-{menu_title.replace(' ', '-')}"
         toc_parts.append(f"<li><a href='#{menu_id}'>{menu_title}</a><ul>")
         content_parts.append(f"<h2 id='{menu_id}'>{menu_title}</h2>")
 
         for dialog in keyword.findall(".//dialog"):
             dialog_title = dialog.attrib.get("dialogTitle", "Dialog")
-            dialog_id = f"{menu_id}_{dialog_title.replace(' ', '_')}"
+            dialog_id = f"{menu_id}-{dialog_title.replace(' ', '-')}"
             toc_parts.append(f"<li><a href='#{dialog_id}'>{dialog_title}</a></li>")
 
             dialog_img = dialog.attrib.get("imageName", "")
@@ -111,11 +112,11 @@ def main():
             if dialog_img:
                 img_path = copy_image(dialog_img)
                 if img_path:
-                    content_parts.append(f"<img src='{urllib.parse.quote_plus(img_path)}' alt='{dialog_title}'>")
+                    content_parts.append(f"<img src='{img_path}' alt='{dialog_title}'>")
 
             for field in dialog.findall(".//field"):
-                ui_name = field.attrib.get("uiName", "Field")
-                tag = dialog_title.lower().replace(' ', '_') + "_" + ui_name.lower().replace(' ', '_')
+                ui_name = re.sub(r'(?<! )\([^()]+\)$', '', field.attrib.get("uiName", "Field"))
+                tag = dialog_title.lower().replace(' ', '-') + "-" + ui_name.lower().replace(' ', '-')
                 img = field.attrib.get("imageName", "")
                 tooltip = field.attrib.get("tooltip", "")
 
@@ -127,7 +128,7 @@ def main():
                 if img:
                     img_path = copy_image(img)
                     if img_path:
-                        content_parts.append(f"<img src='{urllib.parse.quote_plus(img_path)}' alt='{ui_name}'>")
+                        content_parts.append(f"<img src='{img_path}' alt='{ui_name}'>")
                 content_parts.append("</div>")
 
         toc_parts.append("</ul></li>")
