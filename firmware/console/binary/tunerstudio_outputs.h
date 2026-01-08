@@ -17,6 +17,6 @@
 /**
  * see also [OutputChannels] in tunerstudio.template.ini
  */
- struct TunerStudioOutputChannels : output_channels_s { };
+struct TunerStudioOutputChannels : output_channels_s { };
 
 TunerStudioOutputChannels *getTunerStudioOutputChannels();
