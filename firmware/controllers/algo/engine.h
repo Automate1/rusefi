@@ -188,7 +188,6 @@ public:
 #endif
         ShortTermFuelTrim,
 
-
 #include "modules_list_generated.h"
 
         EngineModule // dummy placeholder so the previous entries can all have commas
