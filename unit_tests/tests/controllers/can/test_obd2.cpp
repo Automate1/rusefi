@@ -5,6 +5,15 @@
 #include "can_listener.h"
 #include "obd2.h"
 
+TEST(ObdCore, SupportedPids_01_20_Bitmap)
+{
+    ObdResponse resp;
+    EXPECT_EQ(
+        obdHandleRequest(_1_MODE, PID_SUPPORTED_PIDS_REQUEST_01_20, resp),
+        ObdStatus::Ok
+    );
+    EXPECT_EQ(resp.numBytes, 4);
+}
 
 TEST(CanObd2, obdSendPacket)
 {
