@@ -58,6 +58,8 @@ static const int16_t supportedPids4160[] = {
 	-1
 };
 
+#define MOCK_SUPPORTED_PIDS 0xffffffff
+
 static uint32_t buildSupportedPidsBitmap(
     const int16_t* supportedPids,
     int bitOffset)
@@ -67,6 +69,11 @@ static uint32_t buildSupportedPidsBitmap(
     for (int i = 0; i < 32 && supportedPids[i] > 0; i++) {
         value |= 1U << (31 + bitOffset - supportedPids[i]);
     }
+
+#ifdef MOCK_SUPPORTED_PIDS
+	// for OBD debug
+	value = MOCK_SUPPORTED_PIDS;
+#endif
 
     return value;
 }
@@ -112,7 +119,7 @@ static ObdStatus obdHandleMode01(uint8_t pid, ObdResponse& out) {
             out.numBytes = 4;
             out.value = buildSupportedPidsBitmap(
                 supportedPids2140,
-                /* bitOffset = */ 33
+                /* bitOffset = */ 0x21
             );
             return ObdStatus::Ok;
 
@@ -120,26 +127,15 @@ static ObdStatus obdHandleMode01(uint8_t pid, ObdResponse& out) {
             out.numBytes = 4;
             out.value = buildSupportedPidsBitmap(
                 supportedPids4160,
-                /* bitOffset = */ 65
+                /* bitOffset = */ 0x41
             );
             return ObdStatus::Ok;
 
-/*	case PID_SUPPORTED_PIDS_REQUEST_01_20:
-		obdWriteSupportedPids(pid, 1, supportedPids0120, busIndex);
-		return ObdStatus::Ok;
-	case PID_SUPPORTED_PIDS_REQUEST_21_40:
-		obdWriteSupportedPids(pid, 0x21, supportedPids2140, busIndex);
-		return ObdStatus::Ok;
-	case PID_SUPPORTED_PIDS_REQUEST_41_60:
-		obdWriteSupportedPids(pid, 0x41, supportedPids4160, busIndex);
-		return ObdStatus::Ok;
-*/
 	case PID_MONITOR_STATUS:
 		out.numBytes = 4;
         out.value = 0; // todo: add statuses
 		// obdSendPacket(1, pid, 4, 0, busIndex);	// todo: add statuses
 		return ObdStatus::Ok;
-
 
 	case PID_FUEL_SYSTEM_STATUS:
 		// todo: add statuses
