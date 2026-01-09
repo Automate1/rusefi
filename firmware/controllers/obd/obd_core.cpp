@@ -120,7 +120,7 @@ static ObdStatus obdHandleMode01(uint8_t pid, ObdResponse& out) {
             out.numBytes = 4;
             out.value = buildSupportedPidsBitmap(
                 supportedPids4160,
-                /* bitOffset = */ 33
+                /* bitOffset = */ 65
             );
             return ObdStatus::Ok;
 
