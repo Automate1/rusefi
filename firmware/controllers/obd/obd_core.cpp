@@ -119,7 +119,7 @@ static ObdStatus obdHandleMode01(uint8_t pid, ObdResponse& out) {
 		return ObdStatus::Ok;
 	case PID_COOLANT_TEMP:
 		out.numBytes = 1;
-        out.value = Sensor::getOrZero(SensorType::Clt) + ODB_TEMP_EXTRA
+        out.value = Sensor::getOrZero(SensorType::Clt) + ODB_TEMP_EXTRA;
 		// obdSendValue(_1_MODE, pid, 1, Sensor::getOrZero(SensorType::Clt) + ODB_TEMP_EXTRA, busIndex);
 		return ObdStatus::Ok;
 	case PID_STFT_BANK1:
