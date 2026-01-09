@@ -74,7 +74,7 @@ static void obdSendValue(int mode, int PID, int numBytes, float value, size_t bu
 
 // #define MOCK_SUPPORTED_PIDS 0xffffffff
 
-void obdWriteSupportedPids(int PID, int bitOffset, const int16_t *supportedPids, size_t busIndex) {
+/*void obdWriteSupportedPids(int PID, int bitOffset, const int16_t *supportedPids, size_t busIndex) {
 	uint32_t value = 0;
 	// gather all 32 bit fields
 	for (int i = 0; i < 32 && supportedPids[i] > 0; i++)
@@ -87,7 +87,7 @@ void obdWriteSupportedPids(int PID, int bitOffset, const int16_t *supportedPids,
 
 	obdSendPacket(1, PID, 4, value, busIndex);
 }
-
+*/
 
 static void handleDtcRequest(int numCodes, ObdCode* dtcCode) {
 	// TODO: this appears to be unfinished?
