@@ -98,12 +98,14 @@ static ObdStatus obdHandleMode01(uint8_t pid, ObdResponse& out) {
 	case PID_SUPPORTED_PIDS_REQUEST_41_60:
 		obdWriteSupportedPids(pid, 0x41, supportedPids4160, busIndex);
 		return ObdStatus::Ok;
-*/
+
 	case PID_MONITOR_STATUS:
 		out.numBytes = 4;
         out.value = 
 		// obdSendPacket(1, pid, 4, 0, busIndex);	// todo: add statuses
 		return ObdStatus::Ok;
+
+*/
 	case PID_FUEL_SYSTEM_STATUS:
 		// todo: add statuses
 		out.numBytes = 2;
