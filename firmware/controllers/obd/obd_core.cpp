@@ -89,7 +89,7 @@ ObdStatus obdHandleRequest(uint8_t mode, uint8_t pid, ObdResponse& out) {
 static ObdStatus obdHandleMode01(uint8_t pid, ObdResponse& out) {
 
 	switch (pid) {
-	case PID_SUPPORTED_PIDS_REQUEST_01_20:
+/*	case PID_SUPPORTED_PIDS_REQUEST_01_20:
 		obdWriteSupportedPids(pid, 1, supportedPids0120, busIndex);
 		return ObdStatus::Ok;
 	case PID_SUPPORTED_PIDS_REQUEST_21_40:
@@ -98,6 +98,7 @@ static ObdStatus obdHandleMode01(uint8_t pid, ObdResponse& out) {
 	case PID_SUPPORTED_PIDS_REQUEST_41_60:
 		obdWriteSupportedPids(pid, 0x41, supportedPids4160, busIndex);
 		return ObdStatus::Ok;
+*/
 	case PID_MONITOR_STATUS:
 		out.numBytes = 4;
         out.value = 
