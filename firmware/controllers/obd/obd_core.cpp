@@ -22,8 +22,6 @@
  */
 
 
- 
-
 #include "pch.h"
 #include "obd_core.h"
 
@@ -60,6 +58,19 @@ static const int16_t supportedPids4160[] = {
 	-1
 };
 
+static uint32_t buildSupportedPidsBitmap(
+    const int16_t* supportedPids,
+    int bitOffset)
+{
+    uint32_t value = 0;
+
+    for (int i = 0; i < 32 && supportedPids[i] > 0; i++) {
+        value |= 1U << (31 + bitOffset - supportedPids[i]);
+    }
+
+    return value;
+}
+
 #define _1_MODE 1
 
 // Forward declarations of mode handlers
@@ -89,6 +100,30 @@ ObdStatus obdHandleRequest(uint8_t mode, uint8_t pid, ObdResponse& out) {
 static ObdStatus obdHandleMode01(uint8_t pid, ObdResponse& out) {
 
 	switch (pid) {
+	case PID_SUPPORTED_PIDS_REQUEST_01_20:
+            out.numBytes = 4;
+            out.value = buildSupportedPidsBitmap(
+                supportedPids0120,
+                /* bitOffset = */ 1
+            );
+            return ObdStatus::Ok;
+
+    case PID_SUPPORTED_PIDS_REQUEST_21_40:
+            out.numBytes = 4;
+            out.value = buildSupportedPidsBitmap(
+                supportedPids2140,
+                /* bitOffset = */ 33
+            );
+            return ObdStatus::Ok;
+
+	case PID_SUPPORTED_PIDS_REQUEST_41_60:
+            out.numBytes = 4;
+            out.value = buildSupportedPidsBitmap(
+                supportedPids4160,
+                /* bitOffset = */ 33
+            );
+            return ObdStatus::Ok;
+
 /*	case PID_SUPPORTED_PIDS_REQUEST_01_20:
 		obdWriteSupportedPids(pid, 1, supportedPids0120, busIndex);
 		return ObdStatus::Ok;
