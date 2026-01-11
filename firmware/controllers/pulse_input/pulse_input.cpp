@@ -31,9 +31,12 @@ void PulseInput::onEdge(bool pinState, efitick_t nowUs) {
 
 void PulseInput::update(efitick_t nowUs) {
     if (windowStartTime == 0) {
-        windowStartTime = nowUs;
-        return;
-    }
+    windowStartTime = nowUs;
+    lastEdgeTime = nowUs;
+    activeAccumUs = 0;
+    pulseCount = 0;
+    return;
+}
 
     // Close partial pulse at window boundary
     if (currentlyActive && lastEdgeTime != 0) {
@@ -50,7 +53,7 @@ void PulseInput::update(efitick_t nowUs) {
 
     if (pulseCount > 0) {
         avgPulseWidthUs = (float)activeAccumUs / (float)pulseCount;
-        frequencyHz = pulseCount / windowSeconds;
+        frequencyHz = (float)pulseCount * 1e6f / (float)windowUs;
     } else {
         avgPulseWidthUs = 0;
         frequencyHz = 0;
@@ -59,7 +62,7 @@ void PulseInput::update(efitick_t nowUs) {
     dutyCycle = (float)activeAccumUs / (float)windowUs;
 
     // Publish to TunerStudio outputs
-    auto* out = getTunerStudioOutputChannels();
+    if (auto* out = getTunerStudioOutputChannels()) {
     out->pulseInputOnTimeMs = avgPulseWidthUs * 0.001f;
     out->pulseInputDutyCycle = dutyCycle * 100.0f;
     out->pulseInputHz = frequencyHz;

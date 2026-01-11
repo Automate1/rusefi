@@ -31,4 +31,10 @@ private:
 
     efitick_t activeAccumUs = 0;
     uint32_t pulseCount = 0;
+
+	 // Computed outputs (THIS WAS MISSING)
+    float avgPulseWidthUs = 0.0f;
+    float frequencyHz = 0.0f;
+    float dutyCycle = 0.0f;
 };
+
