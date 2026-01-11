@@ -1436,6 +1436,7 @@ public class VariableRegistryValues {
 	public static final int SentInput_INPUT6 = 6;
 	public static final int SentInput_INPUT7 = 7;
 	public static final int SentInput_NONE = 0;
+	public static final int SIGNATURE_HASH = 1770991878;
 	public static final String SIMULATOR_TUNE_BIN_FILE_NAME = "generated/simulator_tune_image.bin";
 	public static final String SIMULATOR_TUNE_BIN_FILE_NAME_PREFIX = "generated/simulator_tune_image";
 	public static final String SIMULATOR_TUNE_BIN_FILE_NAME_SUFFIX = ".bin";
@@ -1744,7 +1745,7 @@ public class VariableRegistryValues {
 	public static final int TS_RESPONSE_UNRECOGNIZED_COMMAND = 0x83;
 	public static final int TS_SCATTER_OFFSETS_COUNT = 128;
 	public static final char TS_SET_LOGGER_SWITCH = 'l';
-	public static final String TS_SIGNATURE = "rusEFI master.2026.01.08.stm32h743_nucleo.4155700874";
+	public static final String TS_SIGNATURE = "rusEFI master.2026.01.10.stm32h743_nucleo.1770991878";
 	public static final char TS_SIMULATE_CAN = '>';
 	public static final char TS_TEST_COMMAND = 't';
 	public static final int TS_TOTAL_OUTPUT_SIZE = 2076;
@@ -1807,6 +1808,7 @@ public class VariableRegistryValues {
 	public static final String VVT_25_NAME = "INVALID";
 	public static final String VVT_26_NAME = "INVALID";
 	public static final int vvt_mode_e_VVT_BARRA_3_PLUS_1 = 8;
+	public static final int vvt_mode_e_VVT_BMW_N63TU = 17;
 	public static final int vvt_mode_e_VVT_BOSCH_QUICK_START = 5;
 	public static final int vvt_mode_e_VVT_CHRYSLER_PHASER = 14;
 	public static final int vvt_mode_e_VVT_CUSTOM_1 = 29;
@@ -1836,7 +1838,6 @@ public class VariableRegistryValues {
 	public static final int vvt_mode_e_VVT_TOYOTA_3_TOOTH = 2;
 	public static final int vvt_mode_e_VVT_TOYOTA_3TOOTH_UZ = 27;
 	public static final int vvt_mode_e_VVT_TOYOTA_4_1 = 6;
-	public static final int vvt_mode_e_VVT_UNUSED_17 = 17;
 	public static final String VVT_OFFSET_1_1_NAME = "VVT offset bank 1 intake";
 	public static final String VVT_OUTPUTS_NAME = "VVT outputs and PID";
 	public static final int VVT_TABLE_RPM_SIZE = 8;

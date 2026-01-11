@@ -9,44 +9,59 @@
 
 #if HAL_USE_CAN || EFI_UNIT_TEST
 
-int IsoTpBase::sendFrame(const IsoTpFrameHeader &header, const uint8_t *data, int num, can_sysinterval_t timeout) {
-	int dlc = 8; // standard 8 bytes
-	CanTxMessage txmsg(CanCategory::SERIAL, txFrameId, dlc, busIndex, IS_EXT_RANGE_ID(txFrameId));
+static const size_t maxDlc = 8;
 
-	// fill the frame data according to the CAN-TP protocol (ISO 15765-2)
-	txmsg[isoHeaderByteIndex] = (uint8_t)((header.frameType & 0xf) << 4);
-	int offset, maxNumBytes;
+int IsoTpBase::sendFrame(const IsoTpFrameHeader &header, const uint8_t *data, int num, can_sysinterval_t timeout) {
+	// Calculate needed DLC and maximum payload
+	int offset, numBytes;
 	switch (header.frameType) {
 	case ISO_TP_FRAME_SINGLE:
 		offset = isoHeaderByteIndex + 1;
-		maxNumBytes = minI(header.numBytes, dlc - offset);
-		txmsg[isoHeaderByteIndex] |= maxNumBytes;
+		numBytes = minI(num, maxDlc - offset);
 		break;
 	case ISO_TP_FRAME_FIRST:
-		txmsg[isoHeaderByteIndex] |= (header.numBytes >> 8) & 0xf;
-		txmsg[isoHeaderByteIndex + 1] = (uint8_t)(header.numBytes & 0xff);
 		offset = isoHeaderByteIndex + 2;
-		maxNumBytes = minI(header.numBytes, dlc - offset);
+		numBytes = minI(num, maxDlc - offset);
 		break;
 	case ISO_TP_FRAME_CONSECUTIVE:
-		txmsg[isoHeaderByteIndex] |= header.index & 0xf;
 		offset = isoHeaderByteIndex + 1;
-		// todo: is it correct?
-		maxNumBytes = dlc - offset;
+		numBytes = minI(num, maxDlc - offset);
 		break;
 	case ISO_TP_FRAME_FLOW_CONTROL:
-		txmsg[isoHeaderByteIndex] |= header.fcFlag & 0xf;
-		txmsg[isoHeaderByteIndex + 1] = (uint8_t)(header.blockSize);
-		txmsg[isoHeaderByteIndex + 2] = (uint8_t)(header.separationTime);
 		offset = isoHeaderByteIndex + 3;
-		maxNumBytes = 0;	// no data is sent with 'flow control' frame
+		numBytes = 0;	// no data is sent with 'flow control' frame
 		break;
 	default:
 		// bad frame type
 		return 0;
 	}
 
-	int numBytes = minI(maxNumBytes, num);
+	int dlc = offset + numBytes;
+	CanTxMessage txmsg(CanCategory::SERIAL, txFrameId, dlc, busIndex, IS_EXT_RANGE_ID(txFrameId));
+
+	// fill the frame data according to the CAN-TP protocol (ISO 15765-2)
+	txmsg[isoHeaderByteIndex] = (uint8_t)((header.frameType & 0xf) << 4);
+	switch (header.frameType) {
+	case ISO_TP_FRAME_SINGLE:
+		txmsg[isoHeaderByteIndex] |= numBytes;
+		break;
+	case ISO_TP_FRAME_FIRST:
+		txmsg[isoHeaderByteIndex] |= (header.numBytes >> 8) & 0xf;
+		txmsg[isoHeaderByteIndex + 1] = (uint8_t)(header.numBytes & 0xff);
+		break;
+	case ISO_TP_FRAME_CONSECUTIVE:
+		txmsg[isoHeaderByteIndex] |= header.index & 0xf;
+		break;
+	case ISO_TP_FRAME_FLOW_CONTROL:
+		txmsg[isoHeaderByteIndex] |= header.fcFlag & 0xf;
+		txmsg[isoHeaderByteIndex + 1] = (uint8_t)(header.blockSize);
+		txmsg[isoHeaderByteIndex + 2] = (uint8_t)(header.separationTime);
+		break;
+	default:
+		// bad frame type
+		return 0;
+	}
+
 	// copy the contents
 	if (data != nullptr) {
 		for (int i = 0; i < numBytes; i++) {
@@ -55,8 +70,10 @@ int IsoTpBase::sendFrame(const IsoTpFrameHeader &header, const uint8_t *data, in
 	}
 
 	// send the frame!
-	if (transmit(txmsg, timeout) == CAN_MSG_OK)
+	if (transmit(txmsg, timeout) == CAN_MSG_OK) {
 		return numBytes;
+	}
+
 	return 0;
 }
 
@@ -195,7 +212,6 @@ int CanStreamerState::sendDataTimeout(const uint8_t *txbuf, int numBytes, can_sy
 	int numSent = IsoTpBase::sendFrame(header, txbuf + offset, numBytes, timeout);
 	offset += numSent;
 	numBytes -= numSent;
-	int totalNumSent = numSent;
 
 	// get a flow control (FC) frame
 #if !EFI_UNIT_TEST // todo: add FC to unit-tests?
@@ -247,11 +263,10 @@ int CanStreamerState::sendDataTimeout(const uint8_t *txbuf, int numBytes, can_sy
 		numSent = IsoTpBase::sendFrame(header, txbuf + offset, len, timeout);
 		if (numSent < 1)
 			break;
-		totalNumSent += numSent;
 		offset += numSent;
 		numBytes -= numSent;
 	}
-	return totalNumSent;
+	return offset;
 }
 
 int CanStreamerState::getDataFromFifo(uint8_t *rxbuf, size_t &numBytes) {
@@ -402,9 +417,15 @@ int IsoTpRx::readTimeout(uint8_t *rxbuf, size_t *size, sysinterval_t timeout)
 			break;
 		case ISO_TP_FRAME_CONSECUTIVE:
 			frameIdx = rxmsg.data8[isoHeaderByteIndex] & 0xf;
-			if (waitingForNumBytes < 0 || waitingForFrameIndex != frameIdx) {
+			if (waitingForNumBytes < 0) {
+				// Should not happen
+				return -4;
+			}
+			if (waitingForFrameIndex != frameIdx) {
 				// todo: that's an abnormal situation, and we probably should react?
 				// TODO: error codes
+				efiPrintf("received frame index %d is not what expected %d",
+					frameIdx, waitingForFrameIndex);
 				return -2;
 			}
 			numBytesAvailable = minI(waitingForNumBytes, 7 - isoHeaderByteIndex);
@@ -453,6 +474,19 @@ int IsoTpRx::readTimeout(uint8_t *rxbuf, size_t *size, sysinterval_t timeout)
 	*size = buf - rxbuf;
 
 	return overflow ? 1 : 0;
+}
+
+void IsoTpRx::resetRxVerbose() {
+#if EFI_PROD_CODE || SIMULATOR
+	CANRxFrame rxmsg;
+
+	while (rxFifoBuf.get(rxmsg, 0)) {
+		printCANRxFrame(busIndex, rxmsg);
+	}
+#endif
+
+	waitingForNumBytes = 0;
+	waitingForFrameIndex = 0;
 }
 
 int IsoTpRxTx::writeTimeout(const uint8_t *txbuf, size_t size, sysinterval_t timeout) {
