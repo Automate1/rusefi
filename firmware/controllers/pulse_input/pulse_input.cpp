@@ -71,6 +71,7 @@ void PulseInput::update(efitick_t nowUs) {
     windowStartTime = nowUs;
     activeAccumUs = 0;
     pulseCount = 0;
+	}
 }
 
 float PulseInput::getAveragePulseWidthUs() const {
@@ -83,6 +84,4 @@ float PulseInput::getDutyCycle() const {
 
 float PulseInput::getFrequencyHz() const {
     return frequencyHz;
-}
-
 }
