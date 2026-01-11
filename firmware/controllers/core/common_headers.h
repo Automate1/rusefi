@@ -30,7 +30,10 @@
 #include "auto_generated_engine_type_e.h"
 #include "efilib.h"
 #include "efitime.h"
-#include "tunerstudio_outputs.h"
+
+#ifndef EFI_BOOTLOADER
+	#include "tunerstudio_outputs.h"
+#endif
 
 // FIRMWARE_ID is only used to display custom nicer board names to the user in console window and error message
 #ifndef FIRMWARE_ID
