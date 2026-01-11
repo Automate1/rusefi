@@ -4,6 +4,11 @@
  * ISO 15765-4
  * http://en.wikipedia.org/wiki/OBD-II_PIDs
  *
+ * The code to handle the core OBD protocol has been moved to controllers\obd.
+ * This is to allow the core OBD code to be shared between CAN communications and new
+ * ELM327 OBD logic communicating over a USB or serial port.  Only the CAN specific OBD
+ * communcations remain in this file.  Modify OBD PID processing in obd\obd_core.cpp
+ * 
  * @date Jun 9, 2015
  * @author Andrey Belomutskiy, (c) 2012-2020
  *
@@ -50,7 +55,7 @@ void obdSendPacket(int mode, int PID, int numBytes, uint32_t iValue, size_t busI
 	}
 }
 
-#define _1_MODE 1
+// #define _1_MODE 1
 
 void handleGetDataRequest(const CANRxFrame& rx, size_t busIndex) {
     uint8_t mode = rx.data8[1];

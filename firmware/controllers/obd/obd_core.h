@@ -85,6 +85,6 @@ struct ObdResponse {
 //
 // mode: OBD mode (e.g. 0x01)
 // pid:  PID within that mode
-// out:  Filled on success
+// out:  Data filled on success
 //
 ObdStatus obdHandleRequest(uint8_t mode, uint8_t pid, ObdResponse& out);

@@ -4,6 +4,9 @@
  * ISO 15765-4
  * http://en.wikipedia.org/wiki/OBD-II_PIDs
  *
+ * This file handles the core of the OBD protocol including the mode and PID requests and responses.
+ * It is used by both controllers\can\obd2.cpp and ELM327 serial logic.
+ *
  * @date Jan 7, 2026
  * @author Automate
  *
