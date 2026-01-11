@@ -63,7 +63,7 @@ void PulseInput::update(efitick_t nowUs) {
 
     // Publish to TunerStudio outputs
     if (auto* out = getTunerStudioOutputChannels()) {
-    out->pulseInputOnTimeMs = avgPulseWidthUs * 0.001f;
+    out->pulseInputOnTimeUs = avgPulseWidthUs * 0.001f;
     out->pulseInputDutyCycle = dutyCycle * 100.0f;
     out->pulseInputHz = frequencyHz;
 
@@ -83,4 +83,6 @@ float PulseInput::getDutyCycle() const {
 
 float PulseInput::getFrequencyHz() const {
     return frequencyHz;
+}
+
 }
