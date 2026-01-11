@@ -49,7 +49,7 @@ void PulseInput::update(efitick_t nowUs) {
         return;
     }
 
-    float windowSeconds = windowUs * 1e-6f;
+    // float windowSeconds = windowUs * 1e-6f;
 
     if (pulseCount > 0) {
         avgPulseWidthUs = (float)activeAccumUs / (float)pulseCount;
