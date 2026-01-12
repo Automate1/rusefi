@@ -22,8 +22,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
-          ref: ${{ github.ref }}   # ensures the workflow checks out your AnalogOutput branch
-          # fetch-depth: 0           # ensures full clone, so all files (like dfr0971.cpp) are present
+          ref: ${{ github.ref }}  
+          # fetch-depth: 0           # ensures full clone, so all files are present
           submodules: true
 
       - name: Initialize submodules
@@ -68,11 +68,13 @@ jobs:
         working-directory: ./firmware/
         continue-on-error: true # Essential: allows subsequent steps to run even if this one fails
         run: |
+            set -o pipefail
             # bash bin/compile.sh ${{env.BOARD_META_PATH}} build_both_bundles --output-sync=recurse
             bin/compile.sh ${{env.BOARD_META_PATH}} build_both_bundles --output-sync=recurse 2>&1 | tee build_output.log
         shell: bash
 
       - name: Archive Compilation Logs
+        if: always()
         uses: actions/upload-artifact@v4
         with:
             name: ${{matrix.build-target}}_build_log.txt
