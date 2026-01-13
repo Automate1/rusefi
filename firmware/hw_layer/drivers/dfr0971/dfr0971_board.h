@@ -1,8 +1,8 @@
 #pragma once
 
-#if defined(HELLEN_UAEFI)
+#ifdef USE_DFR0971
 
-#include "controllers/core/brain_pin.h"
+#include "brain_pin.h"
 
 static constexpr brain_pin_e DFR0971_SCL = Gpio_E13;
 static constexpr brain_pin_e DFR0971_SDA = Gpio_E14;

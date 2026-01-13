@@ -1,4 +1,5 @@
 #pragma once
+#ifdef USE_DFR0971
 
 #include "pch.h"
 
@@ -19,3 +20,5 @@ public:
 private:
     bool m_initialized = false;
 };
+
+#endif

@@ -1,5 +1,6 @@
 #pragma once
 
+#ifdef USE_DFR0971
 #include "pch.h"          // REQUIRED: brings in stdint, size_t, ChibiOS, etc.
 
 class BitbangI2c;
@@ -27,3 +28,5 @@ private:
     BitbangI2c& m_i2c;
     uint8_t     m_address;
 };
+
+#endif

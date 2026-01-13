@@ -1,3 +1,5 @@
+#ifdef USE_DFR0971
+
 #include "pch.h"
 
 #include "dfr0971.h"
@@ -19,3 +21,4 @@ void Dfr0971::setOutput(uint8_t channel, uint16_t value) {
 
     m_i2c.write(m_address, buf, sizeof(buf));
 }
+#endif
