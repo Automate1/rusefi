@@ -1,24 +1,29 @@
 #pragma once
-#include <cstdint>
-#include "i2c_bb.h"
+
+#include "pch.h"          // REQUIRED: brings in stdint, size_t, ChibiOS, etc.
+
+class BitbangI2c;
 
 /**
- * Driver for DFRobot DFR0971 12-bit DAC
- * Supports 2 channels per device
+ * Minimal driver for DFRobot DFR0971 (2-channel I2C DAC)
+ *
+ * Responsibilities:
+ *  - Write raw DAC values to a specific device address
+ *
+ * Does NOT:
+ *  - Own pins
+ *  - Own the I2C bus
+ *  - Perform scaling or safety checks
  */
-
-// class BitbangI2c;  // forward declaration is sufficient
-
 class Dfr0971 {
 public:
-	void init(brain_pin_e scl, brain_pin_e sda);
-    // Dfr0971(BitbangI2c* bus, uint8_t addr);
+    Dfr0971(BitbangI2c& i2c, uint8_t i2cAddress);
 
-    // Set output on a single DAC channel
+    // channel: 0 or 1
+    // value:   raw DAC value (driver does not scale)
     void setOutput(uint8_t channel, uint16_t value);
 
 private:
-	BitbangI2c dfr_i2c;
-    uint8_t address;
-
+    BitbangI2c& m_i2c;
+    uint8_t     m_address;
 };
