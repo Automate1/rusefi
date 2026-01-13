@@ -3,7 +3,6 @@
 #include "dfr0971_controller.h"
 #include "dfr0971.h"
 #include "i2c_bb.h"
-#include "configuration.h"
 #include "lua_hooks.h"
 
 // ---- constants ----
