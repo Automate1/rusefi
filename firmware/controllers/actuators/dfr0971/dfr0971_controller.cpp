@@ -1,10 +1,10 @@
 #include "pch.h"
 
-#include "controllers/actuators/dfr0971/dfr0971_controller.h"
-#include "hw_layer/drivers/dfr0971/dfr0971.h"
-#include "hw_layer/drivers/i2c/i2c_bb.h"
+#include "dfr0971_controller.h"
+#include "dfr0971.h"
+#include "i2c_bb.h"
 #include "configuration.h"
-#include "lua/lua_hooks.h"
+#include "lua_hooks.h"
 
 // ---- constants ----
 static constexpr uint16_t DFR0971_MAX = 4095;
