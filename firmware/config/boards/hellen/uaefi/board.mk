@@ -7,6 +7,8 @@ ifeq ($(PROJECT_CPU),ARCH_STM32F7)
 	DDEFS += -DLUA_RX_MAX_FILTER_COUNT=96
 endif
 
+DDEFS += -DUSE_DFR0971
+
 #no mux on mm100
 
 # Add them all together
