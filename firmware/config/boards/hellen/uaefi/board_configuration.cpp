@@ -6,7 +6,6 @@
  * @author Andrey Belomutskiy, (c) 2012-2023
  */
 
-#define USE_DFR0971
 
 /*
 #include "ch.h"

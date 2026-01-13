@@ -1,63 +1,81 @@
+#ifdef USE_DFR0971
+
 #include "pch.h"
 
-#include "dfr0971_controller.h"
+// #include "dfr0971_controller.h"
 #include "dfr0971.h"
 #include "i2c_bb.h"
 #include "lua_hooks.h"
+#include "pch.h"
 
-// ---- constants ----
+
+#include "dfr0971.h"
+#include "dfr0971_board.h"
+
+#include "i2c_bb.h"
+#include "module.h"
+
+#include <algorithm>
+
+// -----------------------------------------------------------------------------
+// Constants
+// -----------------------------------------------------------------------------
+
 static constexpr uint16_t DFR0971_MAX = 4095;
-static constexpr uint8_t  MAX_DEVICES = 2;
 
-// ---- hardware ownership ----
+// -----------------------------------------------------------------------------
+// Static objects (firmware lifetime)
+// -----------------------------------------------------------------------------
+
 static BitbangI2c dfrI2c;
-static Dfr0971*   dacs[MAX_DEVICES];
+static Dfr0971 dfr0971(dfrI2c, 0x2C);   // default DFR0971 address
 
-// ---- controller instance ----
-static Dfr0971Controller dfrController;
+// -----------------------------------------------------------------------------
+// Internal helpers
+// -----------------------------------------------------------------------------
 
-void Dfr0971Controller::init() {
-    if (m_initialized) {
-        return;
+static uint16_t percentToDac(float percent) {
+    if (percent <= 0.0f) {
+        return 0;
+    }
+    if (percent >= 100.0f) {
+        return DFR0971_MAX;
     }
 
-    if (!boardConfiguration->i2c_bb_scl.isValid()) {
-        return;
-    }
-
-    dfrI2c.init(
-        boardConfiguration->i2c_bb_scl,
-        boardConfiguration->i2c_bb_sda
+    return static_cast<uint16_t>(
+        (percent * DFR0971_MAX + 50.0f) / 100.0f
     );
-
-    dacs[0] = new Dfr0971(dfrI2c, 0x60);
-    dacs[1] = new Dfr0971(dfrI2c, 0x61);
-
-    m_initialized = true;
 }
 
-void Dfr0971Controller::setOutputPercent(uint8_t device,
-                                         uint8_t channel,
-                                         float percent) {
-    if (!m_initialized) {
-        return;
-    }
+// -----------------------------------------------------------------------------
+// Public controller API (used by Lua / future callers)
+// -----------------------------------------------------------------------------
 
-    if (device >= MAX_DEVICES || channel > 1) {
-        return;
-    }
-
-    // ---- clamp percent ----
-    if (percent < 0.0f) {
-        percent = 0.0f;
-    } else if (percent > 100.0f) {
-        percent = 100.0f;
-    }
-
-    // ---- scale to DAC range ----
-    uint16_t value = static_cast<uint16_t>(
-        (percent / 100.0f) * DFR0971_MAX + 0.5f
-    );
-
-    dacs[device]->setOutput(channel, value);
+void dfr0971SetPercent(uint8_t channel, float percent) {
+    const uint16_t dac = percentToDac(percent);
+    dfr0971.setOutput(channel, dac);
 }
+
+// -----------------------------------------------------------------------------
+// Module init
+// -----------------------------------------------------------------------------
+
+static void initDfr0971() {
+    dfrI2c.init(DFR0971_SCL, DFR0971_SDA);
+}
+
+// -----------------------------------------------------------------------------
+// Module registration
+// -----------------------------------------------------------------------------
+
+struct Dfr0971Module final : public Module {
+    Dfr0971Module() : Module("DFR0971") {}
+
+    void init() override {
+        initDfr0971();
+    }
+};
+
+static Dfr0971Module dfr0971Module;
+
+#endif // USE_DFR0971
