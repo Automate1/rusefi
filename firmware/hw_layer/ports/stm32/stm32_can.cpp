@@ -372,6 +372,72 @@ void canHwInfo(CANDriver* cand) {
       (esr & 0x4) ? "BOFF" : "",
       (esr & 0x2) ? "EPVF" : "",
       (esr & 0x1) ? "EWGF" : "");
+#elif STM32_CAN_USE_FDCAN1 || STM32_CAN_USE_FDCAN2 || STM32_CAN_USE_FDCAN3
+	if (cand->fdcan == NULL) {
+		efiPrintf("No device assigned!");
+	}
+
+	uint32_t cccr = cand->fdcan->CCCR;
+	efiPrintf("CCCR: %s %s %s",
+		(cccr & FDCAN_CCCR_MON) ? "Bus monitoring mode" : "",
+		(cccr & FDCAN_CCCR_ASM) ? "ASM restricted operation mode" : "",
+		(cccr & FDCAN_CCCR_INIT) ? "INIT" : "");
+
+	uint32_t ecr = cand->fdcan->ECR;
+	efiPrintf("CAN error logging counter %ld",
+		(ecr & FDCAN_ECR_CEL_Msk) >> FDCAN_ECR_CEL_Pos);
+	if (ecr & FDCAN_ECR_RP) {
+		efiPrintf("Receive error passive 128+");
+	} else {
+		efiPrintf("Receive error counter %ld",
+			(ecr & FDCAN_ECR_REC_Msk) >> FDCAN_ECR_REC_Pos);
+	}
+	efiPrintf("Transmit error counter %ld",
+		(ecr & FDCAN_ECR_TEC_Msk) >> FDCAN_ECR_TEC_Pos);
+
+	uint32_t psr = cand->fdcan->PSR;
+	efiPrintf("Flags: %s %s %s %s",
+		(psr & FDCAN_PSR_PXE) ? "PXE" : "",
+		(psr & FDCAN_PSR_BO) ? "Bus_Off" : "",
+		(psr & FDCAN_PSR_EW) ? "EW" : "",
+		(psr & FDCAN_PSR_EP) ? "Error passive" : "");
+
+	static const char *lec_names[8] = {
+		"No error",
+		"Stuff error",
+		"Form error",
+		"AckError",
+		"Bit1Error",
+		"Bit0Error",
+		"CRCError",
+		"NoChange"
+	};
+
+	efiPrintf("Last error %s", lec_names[psr & 0x7]);
+#endif
+}
+
+void canHwRecover(const size_t busIndex, CANDriver *cand)
+{
+#if STM32_CAN_USE_FDCAN1 || STM32_CAN_USE_FDCAN2 || STM32_CAN_USE_FDCAN3
+	// equal to TIMEOUT_INIT_MS
+	#define TIMEOUT_RECOVER_MS	250U
+
+	// mostly copy-paste of static bool fdcan_active_mode(CANDriver *canp) from ChibiOS hal_can_lld.c
+	if (cand->fdcan->CCCR & FDCAN_CCCR_INIT) {
+		systime_t start, end;
+
+		/* Going in active mode then waiting for it to happen.*/
+		cand->fdcan->CCCR &= ~FDCAN_CCCR_INIT;
+		start = osalOsGetSystemTimeX();
+		end = osalTimeAddX(start, TIME_MS2I(TIMEOUT_RECOVER_MS));
+		while ((cand->fdcan->CCCR & FDCAN_CCCR_INIT) != 0U) {
+			if (!osalTimeIsInRangeX(osalOsGetSystemTimeX(), start, end)) {
+				return;
+			}
+			osalThreadSleep(1);
+		}
+	}
 #endif
 }
 
