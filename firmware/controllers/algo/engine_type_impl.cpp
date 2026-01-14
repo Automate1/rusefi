@@ -220,6 +220,9 @@ void applyEngineType(engine_type_e engineType) {
 	case engine_type_e::GM_SBC_GEN4:
 		setGmLs4();
 		break;
+	case engine_type_e::GM_SBC:
+	  setGmSbc();
+    break;
 #endif
 
 #if HW_PROTEUS || EFI_SIMULATOR
@@ -248,9 +251,6 @@ void applyEngineType(engine_type_e engineType) {
 	case engine_type_e::PROTEUS_STIM_QC:
 	    proteusStimQc();
 		break;
-	case engine_type_e::GM_SBC:
-	    setGmSbc();
-        break;
 #if defined(HARDWARE_CI) || EFI_SIMULATOR
 	case engine_type_e::PROTEUS_ANALOG_PWM_TEST:
     #if defined(HARDWARE_CI)
@@ -288,12 +288,6 @@ void applyEngineType(engine_type_e engineType) {
 	case engine_type_e::HELLEN_154_HYUNDAI_COUPE_BK2:
 		setGenesisCoupeBK2();
 		break;
-#endif
-
-#if defined(HW_HELLEN_8CHAN) || defined(HW_HELLEN_UAEFI121) || defined(HW_HELLEN_UAEFI)
-	case engine_type_e::GM_SBC:
-	    setGmSbc();
-        break;
 #endif
 
 #if defined(HW_HELLEN_121_VAG) || defined(HW_HELLEN_UAEFI) || defined(HW_HELLEN_UAEFI121) || EFI_SIMULATOR
