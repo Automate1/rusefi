@@ -1,9 +1,7 @@
-name: Sync upstream to all branches
+name: Sync upstream into all branches
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 3 * * *'  # optional
 
 jobs:
   sync:
@@ -11,23 +9,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0   # REQUIRED
+          ref: master
 
       - name: Add upstream
         run: |
-          git remote add upstream https://github.com/rusefi/rusefi.git
+          git remote add upstream https://github.com/UPSTREAM/REPO.git || true
           git fetch upstream
+          git fetch origin '+refs/heads/*:refs/remotes/origin/*'
 
-      - name: Sync master
+      - name: Merge upstream/master into all branches
         run: |
-          git checkout master
-          git merge upstream/master --no-edit
-          git push origin master
-
-      - name: Sync all other branches
-        run: |
-          for branch in $(git for-each-ref --format='%(refname:short)' refs/heads/ | grep -v '^master$'); do
-            git checkout "$branch"
+          for branch in $(git for-each-ref --format='%(refname:short)' refs/remotes/origin/ | sed 's|origin/||'); do
+            echo "Updating $branch"
+            git checkout -B "$branch" "origin/$branch"
             git merge upstream/master --no-edit || exit 1
             git push origin "$branch"
           done
