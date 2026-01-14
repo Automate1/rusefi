@@ -1,91 +1,33 @@
-permissions:
-  contents: write
-  issues: write
-
-name: Sync upstream and update branches
+name: Sync upstream to all branches
 
 on:
-  # schedule:
-  #  - cron: "0 3 * * *"
   workflow_dispatch:
-
+  schedule:
+    - cron: '0 3 * * *'  # optional
 
 jobs:
   sync:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Configure git
+      - name: Add upstream
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Add upstream and fetch
-        run: |
-          git remote add upstream https://github.com/rusEFI/rusefi.git || true
-          git fetch upstream --prune
+          git remote add upstream https://github.com/rusefi/rusefi.git
+          git fetch upstream
 
       - name: Sync master
         run: |
           git checkout master
-          git merge --no-edit upstream/master
+          git merge upstream/master --no-edit
           git push origin master
 
-      - name: Merge master into branches (force merge commit)
+      - name: Sync all other branches
         run: |
-            for branch in $(git for-each-ref --format='%(refname:short)' refs/heads/); do
-              if [ "$branch" != "master" ]; then
-                echo "Updating $branch"
-                git checkout "$branch"
-
-                git merge --no-ff --no-edit master || {
-                  echo "Merge conflict on $branch"
-                  echo "FAILED_BRANCH=$branch" >> $GITHUB_ENV
-                exit 1
-                }
-                
-                git push origin "$branch"
-              fi
-            done
-
-      - name: Report conflict via GitHub Issue
-        if: failure()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const branch = process.env.FAILED_BRANCH || "unknown";
-
-            const title = `Merge conflict: ${branch} ↔ master`;
-
-            const body = `**Automatic branch update failed due to a merge conflict**
-            **Branch:** \`${branch}\`
-            **Base:** \`master\`
-
-            This branch could not be automatically updated using the GitHub-UI-equivalent merge strategy.
-
-            ### What to do
-            1. Check out the branch locally or in github.dev
-            2. Merge \`master\` into \`${branch}\`
-            3. Resolve conflicts
-            4. Push the fix
-
-            This issue was generated automatically by the sync workflow.
-            `;
-
-            // Check if issue already exists
-            const issues = await github.rest.search.issuesAndPullRequests({
-              q: `repo:${context.repo.owner}/${context.repo.repo} "${title}" in:title state:open`
-            });
-
-            if (issues.data.items.length === 0) {
-              await github.rest.issues.create({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                title,
-                body
-              });
-            }
+          for branch in $(git for-each-ref --format='%(refname:short)' refs/heads/ | grep -v '^master$'); do
+            git checkout "$branch"
+            git merge upstream/master --no-edit || exit 1
+            git push origin "$branch"
+          done
