@@ -6,7 +6,6 @@
  * @author Andrey Belomutskiy, (c) 2012-2023
  */
 
-#define DFR0971_BOARD_COUNT 1
 
 /*
 #include "ch.h"
@@ -19,6 +18,7 @@
 #include <cstddef>
 */
 
+#define DFR0971_BOARD_COUNT 1
 
 #include "pch.h"
 #include "defaults.h"
