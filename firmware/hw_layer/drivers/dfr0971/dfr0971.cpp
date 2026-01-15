@@ -1,9 +1,9 @@
-#ifdef USE_DFR0971
+#if DFR0971_BOARD_COUNT > 0
 
 #include "pch.h"
 
 #include "dfr0971.h"
-#include "i2c/i2c_bb.h"
+#include "i2c_bb.h"
 
 Dfr0971::Dfr0971(BitbangI2c& i2c, uint8_t i2cAddress)
     : m_i2c(i2c)

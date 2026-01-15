@@ -1,6 +1,7 @@
 #pragma once
 
-#ifdef USE_DFR0971
+#if DFR0971_BOARD_COUNT > 0
+
 #include "pch.h"          // REQUIRED: brings in stdint, size_t, ChibiOS, etc.
 
 class BitbangI2c;
@@ -30,3 +31,22 @@ private:
 };
 
 #endif
+
+
+
+#pragma once
+
+#include <cstdint>
+
+class BitbangI2c;
+
+class Dfr0971 {
+public:
+    explicit Dfr0971(BitbangI2c& i2c, uint8_t address);
+
+    void setOutput(uint8_t channel, uint16_t value);
+
+private:
+    BitbangI2c& m_i2c;
+    uint8_t m_address;
+};

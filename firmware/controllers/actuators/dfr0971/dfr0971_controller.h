@@ -1,5 +1,5 @@
 #pragma once
-#ifdef USE_DFR0971
+#if DFR0971_BOARD_COUNT > 0
 
 #include "pch.h"
 
