@@ -6,14 +6,6 @@
 #include "dfr0971.h"
 #include "i2c_bb.h"
 #include "lua_hooks.h"
-#include "pch.h"
-
-
-#include "dfr0971.h"
-#include "dfr0971_board.h"
-
-#include "i2c_bb.h"
-#include "module.h"
 
 #include <algorithm>
 
