@@ -6,6 +6,7 @@
  * @author Andrey Belomutskiy, (c) 2012-2023
  */
 
+#define DFR0971_BOARD_COUNT 1
 
 /*
 #include "ch.h"
@@ -226,52 +227,3 @@ int boardGetAnalogInputDiagnostic(adc_channel_e hwChannel, float voltage) {
 
 	return 0;
 }
-
-/*
-#ifndef EFI_BOOTLOADER
-
-#ifdef USE_DFR0971
-
-// Static BitbangI2c instance shared by all DFR devices
-static BitbangI2c dfrI2C;
-static bool dfrI2C_initialized = false;
-
-// Initialize I2C (board-specific pins: C6/C7 -> PE13/PE14)
-static void initDfrI2C() {
-    if (!dfrI2C_initialized) {
-        dfrI2C.init((brain_pin_e)Gpio_E13, (brain_pin_e)Gpio_E14);
-        dfrI2C_initialized = true;
-    }
-}
-
-// Two DFR0971 devices (example addresses: 0x60, 0x61)
-static Dfr0971 dfrDac1(&dfrI2C, 0x60);
-static Dfr0971 dfrDac2(&dfrI2C, 0x61);
-
-// Update functions — call these individually for each output
-void updateDac1(uint8_t channel, uint16_t value) {
-    initDfrI2C();
-    dfrDac1.setOutput(channel, value);
-}
-
-void updateDac2(uint8_t channel, uint16_t value) {
-    initDfrI2C();
-    dfrDac2.setOutput(channel, value);
-}
-
-#else  // USE_DFR0971 not defined
-
-// stubs so higher-level code can call them safely
-inline void updateDac1(uint8_t, uint16_t) {}
-inline void updateDac2(uint8_t, uint16_t) {}
-
-#endif // USE_DFR0971
-
-#else // EFI_BOOTLOADER
-
-// bootloader: do nothing
-inline void updateDac1(uint8_t, uint16_t) {}
-inline void updateDac2(uint8_t, uint16_t) {}
-
-#endif // EFI_BOOTLOADER
-*/
