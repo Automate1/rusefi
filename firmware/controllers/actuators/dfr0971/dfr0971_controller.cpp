@@ -5,74 +5,37 @@
 
 #if DFR0971_BOARD_COUNT > 0
 
-#include "pch.h"
-
-// #include "dfr0971_controller.h"
 #include "dfr0971.h"
 #include "i2c_bb.h"
-#include "lua_hooks.h"
-
+#include "engine.h"
 #include <algorithm>
 
-// -----------------------------------------------------------------------------
-// Constants
-// -----------------------------------------------------------------------------
-
-static constexpr uint16_t DFR0971_MAX = 4095;
-
-// -----------------------------------------------------------------------------
-// Static objects (firmware lifetime)
-// -----------------------------------------------------------------------------
-
 static BitbangI2c dfrI2c;
-static Dfr0971 dfr0971(dfrI2c, 0x2C);   // default DFR0971 address
 
-// -----------------------------------------------------------------------------
-// Internal helpers
-// -----------------------------------------------------------------------------
+static Dfr0971* dfrBoards[DFR0971_BOARD_COUNT];
+
+static constexpr uint8_t baseAddress = 0x60; // first DFR0971
 
 static uint16_t percentToDac(float percent) {
-    if (percent <= 0.0f) {
-        return 0;
-    }
-    if (percent >= 100.0f) {
-        return DFR0971_MAX;
-    }
-
-    return static_cast<uint16_t>(
-        (percent * DFR0971_MAX + 50.0f) / 100.0f
-    );
+    percent = std::clamp(percent, 0.0f, 100.0f);
+    return static_cast<uint16_t>((percent / 100.0f) * 4095.0f);
 }
 
-// -----------------------------------------------------------------------------
-// Public controller API (used by Lua / future callers)
-// -----------------------------------------------------------------------------
+void initDfr0971Controller() {
+    // Pins are board-family specific
+    dfrI2c.init(Gpio_E13, Gpio_E14);
 
-void dfr0971SetPercent(uint8_t channel, float percent) {
-    const uint16_t dac = percentToDac(percent);
-    dfr0971.setOutput(channel, dac);
-}
-
-// -----------------------------------------------------------------------------
-// Module init
-// -----------------------------------------------------------------------------
-
-static void initDfr0971() {
-    dfrI2c.init(DFR0971_SCL, DFR0971_SDA);
-}
-
-// -----------------------------------------------------------------------------
-// Module registration
-// -----------------------------------------------------------------------------
-
-struct Dfr0971Module final : public Module {
-    Dfr0971Module() : Module("DFR0971") {}
-
-    void init() override {
-        initDfr0971();
+    for (uint8_t i = 0; i < DFR0971_BOARD_COUNT; i++) {
+        dfrBoards[i] = new Dfr0971(dfrI2c, baseAddress + i);
     }
-};
+}
 
-static Dfr0971Module dfr0971Module;
+void dfr0971SetOutput(uint8_t board, uint8_t channel, float percent) {
+    if (board >= DFR0971_BOARD_COUNT || channel >= 4) {
+        return;
+    }
 
+    uint16_t value = percentToDac(percent);
+    dfrBoards[board]->setOutput(channel, value);
+}
 #endif // USE_DFR0971

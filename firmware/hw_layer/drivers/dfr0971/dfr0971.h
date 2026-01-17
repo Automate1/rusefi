@@ -49,4 +49,27 @@ public:
 private:
     BitbangI2c& m_i2c;
     uint8_t m_address;
+};#pragma once
+
+#ifndef DFR0971_BOARD_COUNT
+#define DFR0971_BOARD_COUNT 0
+#endif
+
+#if DFR0971_BOARD_COUNT > 0
+
+#include <cstdint>
+
+class BitbangI2c;
+
+class Dfr0971 {
+public:
+    Dfr0971(BitbangI2c* i2c, uint8_t address);
+
+    void setOutput(uint8_t channel, uint16_t value);
+
+private:
+    BitbangI2c* m_i2c;
+    uint8_t m_address;
 };
+
+#endif // DFR0971_BOARD_COUNT > 0
