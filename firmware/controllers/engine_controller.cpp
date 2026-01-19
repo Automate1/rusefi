@@ -113,13 +113,6 @@ void initDataStructures() {
 #endif // EFI_ENGINE_CONTROL
 }
 
-#ifndef DFR0971_BOARD_COUNT
-#define DFR0971_BOARD_COUNT 1
-#endif
-
-#if DFR0971_BOARD_COUNT > 0
-    initDfr0971();
-#endif
 
 #if !EFI_UNIT_TEST
 
@@ -396,6 +389,14 @@ void commonInitEngineController() {
 	addConsoleAction("sensorinfo", printSensorInfo);
 	addConsoleAction("reset_accel", resetAccel);
 #endif /* EFI_PROD_CODE */
+
+#ifndef DFR0971_BOARD_COUNT
+#define DFR0971_BOARD_COUNT 1
+#endif
+
+#if DFR0971_BOARD_COUNT > 0
+    initDfr0971();
+#endif
 
 #if EFI_SIMULATOR || EFI_UNIT_TEST
 	printf("commonInitEngineController\n");
