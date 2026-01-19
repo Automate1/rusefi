@@ -37,3 +37,15 @@ static void initDfr0971() {
         dfrDevices[i] = &devices[i];
     }
 }
+
+struct Dfr0971Module final : public Module {
+    Dfr0971Module() : Module("DFR0971") {}
+
+    void init() override {
+        initDfr0971();
+    }
+};
+
+static Dfr0971Module dfr0971Module;
+
+#endif // DFR0971_BOARD_COUNT > 0
