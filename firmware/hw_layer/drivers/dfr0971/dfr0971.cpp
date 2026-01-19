@@ -4,8 +4,8 @@
 
 #if DFR0971_BOARD_COUNT > 0
 
+#include "i2c_bb.h"
 #include "dfr0971.h"
-#include "hw_layer/drivers/i2c/i2c_bb.h"
 #include <algorithm>
 
 Dfr0971::Dfr0971(BitbangI2c* i2c, uint8_t address)
