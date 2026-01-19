@@ -7,9 +7,8 @@
 
 #include "pch.h"
 #include "dfr0971_controller.h"
-#include "dfr0971.h"
 #include "i2c_bb.h"
-#include "boards.h"
+#include "dfr0971.h"
 
 static BitbangI2c dfrI2c;
 static Dfr0971* dfrBoards[DFR0971_BOARD_COUNT];
