@@ -1,21 +1,22 @@
 
 #ifndef DFR0971_BOARD_COUNT
-	#define DFR0971_BOARD_COUNT 1
+    #define DFR0971_BOARD_COUNT 1
 #endif
 
 #if DFR0971_BOARD_COUNT > 0
 
-#include "pch.h"
+#include "pch.h"                  // include standard rusEFI headers
 #include "dfr0971_controller.h"
-#include "i2c_bb.h"
 #include "dfr0971.h"
+#include "i2c_bb.h"
 
+// Single I2C bus for all DFR0971 boards
 static BitbangI2c dfrI2c;
+
+// Array of board instances
 static Dfr0971* dfrBoards[DFR0971_BOARD_COUNT];
 
-static constexpr brain_pin_e DFR0971_SCL_PIN = Gpio_E13;
-static constexpr brain_pin_e DFR0971_SDA_PIN = Gpio_E14;
-
+// I2C addresses per board (modify as needed)
 static constexpr uint8_t dfrAddresses[DFR0971_BOARD_COUNT] = {
     0x60,
 #if DFR0971_BOARD_COUNT > 1
@@ -23,9 +24,12 @@ static constexpr uint8_t dfrAddresses[DFR0971_BOARD_COUNT] = {
 #endif
 };
 
+// Initialize all DFR0971 boards
 void initDfr0971() {
-    dfrI2c.init(DFR0971_SCL_PIN, DFR0971_SDA_PIN);
+    // Initialize the I2C bus with fixed pins for uaEFI board
+    dfrI2c.init((brain_pin_e) Gpio_E13, (brain_pin_e) Gpio_E14);
 
+    // Create instances
     static Dfr0971 instances[DFR0971_BOARD_COUNT] = {
         Dfr0971(&dfrI2c, dfrAddresses[0]),
 #if DFR0971_BOARD_COUNT > 1
@@ -33,21 +37,28 @@ void initDfr0971() {
 #endif
     };
 
+    // Save pointers for global access
     for (size_t i = 0; i < DFR0971_BOARD_COUNT; i++) {
         dfrBoards[i] = &instances[i];
     }
 }
 
+// Set a DFR0971 output by board number and channel
+// Input percent: 0.0 - 100.0, scaled internally to 0-4095
 void dfr0971SetPercent(size_t board, uint8_t channel, float percent) {
     if (board >= DFR0971_BOARD_COUNT) {
-        return;
+        return; // invalid board index
     }
 
+    // Clamp percent
     if (percent < 0.0f) percent = 0.0f;
     if (percent > 100.0f) percent = 100.0f;
 
+    // Scale 0-100% to 0-4095
     uint16_t value = static_cast<uint16_t>((percent / 100.0f) * 4095.0f);
+
+    // Write value to DFR0971
     dfrBoards[board]->setOutput(channel, value);
 }
 
-#endif
+#endif // DFR0971_BOARD_COUNT > 0
