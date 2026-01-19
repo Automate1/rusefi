@@ -8,7 +8,7 @@
 #include "dfr0971.h"
 #include "i2c_bb.h"
 
-#include "module.h"
+#include "modules/module.h"
 #include "boards.h"
 
 static BitbangI2c dfrI2c;
