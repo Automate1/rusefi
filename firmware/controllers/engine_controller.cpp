@@ -113,6 +113,10 @@ void initDataStructures() {
 #endif // EFI_ENGINE_CONTROL
 }
 
+#if DFR0971_BOARD_COUNT > 0
+    initDfr0971();
+#endif
+
 #if !EFI_UNIT_TEST
 
 static void doPeriodicSlowCallback();

@@ -5,8 +5,8 @@
 #if DFR0971_BOARD_COUNT > 0
 
 #include "dfr0971_controller.h"
-#include "hw_layer/drivers/dfr0971/dfr0971.h"
-#include "hw_layer/drivers/i2c/i2c_bb.h"
+#include "dfr0971.h"
+#include "i2c_bb.h"
 #include "boards.h"
 
 static BitbangI2c dfrI2c;
