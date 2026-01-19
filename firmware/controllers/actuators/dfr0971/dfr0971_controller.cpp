@@ -1,9 +1,11 @@
+
 #ifndef DFR0971_BOARD_COUNT
-#define DFR0971_BOARD_COUNT 1
+	#define DFR0971_BOARD_COUNT 1
 #endif
 
 #if DFR0971_BOARD_COUNT > 0
 
+#include "pch.h"
 #include "dfr0971_controller.h"
 #include "dfr0971.h"
 #include "i2c_bb.h"
