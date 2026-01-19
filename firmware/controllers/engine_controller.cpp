@@ -61,6 +61,15 @@
 #include "adc_subscription.h"
 #include "gc_generic.h"
 
+#ifndef DFR0971_BOARD_COUNT
+	#define DFR0971_BOARD_COUNT 1
+#endif
+
+#if DFR0971_BOARD_COUNT > 0
+	#include "dfr0971_controller.h"
+#endif
+
+
 #if EFI_TUNER_STUDIO
 #include "tunerstudio.h"
 #endif /* EFI_TUNER_STUDIO */
@@ -389,10 +398,6 @@ void commonInitEngineController() {
 	addConsoleAction("sensorinfo", printSensorInfo);
 	addConsoleAction("reset_accel", resetAccel);
 #endif /* EFI_PROD_CODE */
-
-#ifndef DFR0971_BOARD_COUNT
-#define DFR0971_BOARD_COUNT 1
-#endif
 
 #if DFR0971_BOARD_COUNT > 0
     initDfr0971();

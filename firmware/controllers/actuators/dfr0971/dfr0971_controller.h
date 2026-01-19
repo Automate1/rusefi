@@ -1,13 +1,7 @@
-#ifndef DFR0971_BOARD_COUNT
-#define DFR0971_BOARD_COUNT 1
-#endif
-
-#if DFR0971_BOARD_COUNT > 0
-
 #pragma once
 
 #ifndef DFR0971_BOARD_COUNT
-#define DFR0971_BOARD_COUNT 0
+	#define DFR0971_BOARD_COUNT 1
 #endif
 
 #if DFR0971_BOARD_COUNT > 0
