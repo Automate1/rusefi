@@ -1,41 +1,39 @@
 
 #ifndef DFR0971_BOARD_COUNT
-	#define DFR0971_BOARD_COUNT 1
+#define DFR0971_BOARD_COUNT 1
 #endif
 
 #if DFR0971_BOARD_COUNT > 0
 
 #include "dfr0971.h"
 #include "i2c_bb.h"
-#include "engine.h"
-#include <algorithm>
+
+#include "module.h"
+#include "boards.h"
 
 static BitbangI2c dfrI2c;
+static Dfr0971* dfrDevices[DFR0971_BOARD_COUNT];
 
-static Dfr0971* dfrBoards[DFR0971_BOARD_COUNT];
+static constexpr brain_pin_e DFR0971_SCL_PIN = Gpio_E13;
+static constexpr brain_pin_e DFR0971_SDA_PIN = Gpio_E14;
 
-static constexpr uint8_t baseAddress = 0x60; // first DFR0971
+static constexpr uint8_t dfrAddresses[DFR0971_BOARD_COUNT] = {
+    0x60, // board 0
+#if DFR0971_BOARD_COUNT > 1
+    0x61,
+#endif
+};
 
-static uint16_t percentToDac(float percent) {
-    percent = std::clamp(percent, 0.0f, 100.0f);
-    return static_cast<uint16_t>((percent / 100.0f) * 4095.0f);
-}
+static void initDfr0971() {
+    dfrI2c.init(DFR0971_SCL_PIN, DFR0971_SDA_PIN);
 
-void initDfr0971Controller() {
-    // Pins are board-family specific
-    dfrI2c.init(Gpio_E13, Gpio_E14);
-
-    for (uint8_t i = 0; i < DFR0971_BOARD_COUNT; i++) {
-        dfrBoards[i] = new Dfr0971(dfrI2c, baseAddress + i);
+    for (int i = 0; i < DFR0971_BOARD_COUNT; i++) {
+        static Dfr0971 devices[DFR0971_BOARD_COUNT] = {
+            Dfr0971(&dfrI2c, dfrAddresses[0]),
+#if DFR0971_BOARD_COUNT > 1
+            Dfr0971(&dfrI2c, dfrAddresses[1]),
+#endif
+        };
+        dfrDevices[i] = &devices[i];
     }
 }
-
-void dfr0971SetOutput(uint8_t board, uint8_t channel, float percent) {
-    if (board >= DFR0971_BOARD_COUNT || channel >= 4) {
-        return;
-    }
-
-    uint16_t value = percentToDac(percent);
-    dfrBoards[board]->setOutput(channel, value);
-}
-#endif // USE_DFR0971
