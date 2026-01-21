@@ -1,5 +1,4 @@
-#pragma once
-#include dfr0971_config.h
+#include "dfr0971_config.h"
 
 #if DFR0971_BOARD_COUNT > 0
 

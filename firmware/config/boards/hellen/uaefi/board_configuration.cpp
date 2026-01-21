@@ -7,6 +7,7 @@
  */
 
 
+
 /*
 #include "ch.h"
 #include "hal.h"
@@ -17,8 +18,6 @@
 #include <cstdint>
 #include <cstddef>
 */
-
-#define DFR0971_BOARD_COUNT 1
 
 #include "pch.h"
 #include "defaults.h"
