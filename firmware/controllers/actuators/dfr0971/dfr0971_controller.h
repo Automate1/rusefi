@@ -1,5 +1,5 @@
 #pragma once
-#include dfr0971_config.h
+#include "../firmware/hw_layer/drivers/dfr0971/dfr0971_config.h"
 
 #if DFR0971_BOARD_COUNT > 0
 
