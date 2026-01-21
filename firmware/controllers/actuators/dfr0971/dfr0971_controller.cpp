@@ -1,9 +1,9 @@
 
-#ifndef DFR0971_BOARD_COUNT
-    #define DFR0971_BOARD_COUNT 1
-#endif
+#pragma once
+#include dfr0971_config.h
 
 #if DFR0971_BOARD_COUNT > 0
+
 
 #include "pch.h"                  // include standard rusEFI headers
 #include "dfr0971_controller.h"

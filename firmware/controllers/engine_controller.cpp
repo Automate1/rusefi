@@ -21,6 +21,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "dfr0971_config.h"
 #include "pch.h"
 
 
@@ -60,10 +61,6 @@
 #include "vr_pwm.h"
 #include "adc_subscription.h"
 #include "gc_generic.h"
-
-#ifndef DFR0971_BOARD_COUNT
-	#define DFR0971_BOARD_COUNT 1
-#endif
 
 #if DFR0971_BOARD_COUNT > 0
 	#include "dfr0971_controller.h"

@@ -1,8 +1,5 @@
 #pragma once
-
-#ifndef DFR0971_BOARD_COUNT
-	#define DFR0971_BOARD_COUNT 1
-#endif
+#include dfr0971_config.h
 
 #if DFR0971_BOARD_COUNT > 0
 
