@@ -1,5 +1,5 @@
 
-#include "dfr0971_config.h"
+#include "./hw_layer/drivers/dfr0971/dfr0971_config.h"
 
 #if DFR0971_BOARD_COUNT > 0 
 	#include "pch.h"       
