@@ -1,12 +1,12 @@
 
 #include "dfr0971_config.h"
 
-#if DFR0971_BOARD_COUNT > 0
+#if DFR0971_BOARD_COUNT > 0 
 	#include "pch.h"       
 	#include "dfr0971_controller.h"
 	#include "dfr0971.h"
 	#include "i2c_bb.h"
-#endif
+
 
 
            // include standard rusEFI headers
