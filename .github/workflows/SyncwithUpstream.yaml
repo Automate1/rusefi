@@ -3,7 +3,7 @@ name: Sync upstream into all branches
 on:
   workflow_dispatch:
 
-  permissions:
+permissions:
   contents: write
   issues: write
   workflows: write
