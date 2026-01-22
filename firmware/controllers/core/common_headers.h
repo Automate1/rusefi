@@ -31,10 +31,6 @@
 #include "efilib.h"
 #include "efitime.h"
 
-#ifndef EFI_BOOTLOADER
-	#include "tunerstudio_outputs.h"
-#endif
-
 // FIRMWARE_ID is only used to display custom nicer board names to the user in console window and error message
 #ifndef FIRMWARE_ID
 #define FIRMWARE_ID QUOTE(SHORT_BOARD_NAME)
