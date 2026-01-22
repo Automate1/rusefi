@@ -46,4 +46,18 @@ public interface IniFileModel {
     String getYBin(String tableName);
 
     Map<String, DialogModel> getDialogs();
+
+    IniField findByOffset(int i);
+
+    Map<String, GaugeCategoryModel> getGaugeCategories();
+
+    Map<String, GaugeModel> getGauges();
+
+    GaugeModel getGauge(String name);
+
+    Map<String, String> getTopicHelp();
+
+    Map<String, ContextHelpModel> getContextHelp();
+
+    ContextHelpModel getContextHelp(String referenceName);
 }

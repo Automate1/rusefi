@@ -79,7 +79,7 @@ public class LazyFileImpl implements LazyFile {
 				if (patchfile != null && !patchfile.trim().isEmpty()) {
 						List<String> fileLines = Arrays.asList(fileContent.split("\\r?\\n"));
 						List<String> newLines  = Arrays.asList(newContent.split("\\r?\\n"));
-						
+
 						Patch<String> patch = DiffUtils.diff(fileLines, newLines);
 						List<String> unifiedDiff = UnifiedDiffUtils.generateUnifiedDiff(
 																																						"a/" + filename,
@@ -94,7 +94,7 @@ public class LazyFileImpl implements LazyFile {
 				}
 
         Files.createDirectories(Paths.get(new File(filename).getParent()));
-        Writer fw = new PrintWriter(new OutputStreamWriter(new FileOutputStream(filename), IoUtils.CHARSET));
+        Writer fw = new PrintWriter(new OutputStreamWriter(new FileOutputStream(filename), LazyFile.CHARSET));
         fw.write(content.toString());
         fw.close();
     }
@@ -106,13 +106,18 @@ public class LazyFileImpl implements LazyFile {
             log.info(filename + " does not exist considering empty current content");
             return "";
         }
-        Scanner in = new Scanner(Paths.get(filename), IoUtils.CHARSET.name());
+        Scanner in = new Scanner(Paths.get(filename), LazyFile.CHARSET.name());
         Pattern pat = Pattern.compile(".*\\R|.+\\z");
         String line;
         StringBuilder sb = new StringBuilder();
         while ((line = in.findWithinHorizon(pat, 0)) != null) {
-            if (!line.toLowerCase().contains(LazyFile.LAZY_FILE_TAG_LOWER))
-                sb.append(line);
+            // Split and process each line the same way write() does
+            String[] lines = line.split("\\r?\\n");
+            for (String subLine : lines) {
+                if (!subLine.toLowerCase().contains(LazyFile.LAZY_FILE_TAG_LOWER)) {
+                    sb.append(subLine).append("\n");
+                }
+            }
         }
         return sb.toString();
     }
