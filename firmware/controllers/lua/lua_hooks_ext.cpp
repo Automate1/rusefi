@@ -3,6 +3,8 @@
 #include "rusefi_lua.h"
 #include "lua_hooks.h"
 
+#include "hw_layer/drivers/dfr0971/dfr0971_config.h"
+
 #if DFR0971_BOARD_COUNT > 0
 #include "controllers/actuators/dfr0971/dfr0971_controller.h"
 #endif
