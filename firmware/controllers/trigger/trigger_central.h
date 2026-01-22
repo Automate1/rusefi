@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include "util/math_util.h"
 #include "rusefi_enums.h"
 #include "listener_array.h"
 #include "trigger_decoder.h"
@@ -149,7 +150,7 @@ public:
 
 		// Clamp between 0.1 seconds ("instant" for a human) and worst case of one engine cycle on low tooth count wheel
 		maxAllowedGap = clampF(0.1f, maxAllowedGap, oneRevolutionLimitInSeconds);
-		
+
 		return (getSecondsSinceTriggerEvent(nowNt) < maxAllowedGap) || directSelfStimulation;
 	}
 
