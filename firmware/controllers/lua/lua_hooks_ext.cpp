@@ -3,9 +3,7 @@
 #include "rusefi_lua.h"
 #include "lua_hooks.h"
 
-#include "hw_layer/drivers/dfr0971/dfr0971_config.h"
-
-#if DFR0971_BOARD_COUNT > 0
+#if defined(DFR0971_BOARD_COUNT) && DFR0971_BOARD_COUNT > 0
 #include "controllers/actuators/dfr0971/dfr0971_controller.h"
 #endif
 
@@ -13,7 +11,7 @@
 // existing CAN-related hooks would live here
 #endif // !defined(STM32F4) && EFI_CAN_SUPPORT
 
-#if DFR0971_BOARD_COUNT > 0
+#if defined(DFR0971_BOARD_COUNT) && DFR0971_BOARD_COUNT > 0
 /**
  * Lua: dfr0971SetPercent(board, channel, percent)
  *  board   : 0-based DFR0971 board index
@@ -39,7 +37,7 @@ void configureRusefiLuaHooksExt(lua_State* lState) {
     // existing CAN Lua registrations would go here
 #endif // !defined(STM32F4) && EFI_CAN_SUPPORT
 
-#if DFR0971_BOARD_COUNT > 0
+#if defined(DFR0971_BOARD_COUNT) && DFR0971_BOARD_COUNT > 0
     // Register DFR0971 Lua API
     lua_register(lState, "dfr0971SetPercent", luaDfr0971SetPercent);
 #endif
