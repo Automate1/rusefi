@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "math_util.h"
+#include "efilib.h"
 #include "rusefi_enums.h"
 #include "listener_array.h"
 #include "trigger_decoder.h"
