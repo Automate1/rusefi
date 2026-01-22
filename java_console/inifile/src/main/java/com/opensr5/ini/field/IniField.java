@@ -1,8 +1,5 @@
 package com.opensr5.ini.field;
 
-import com.opensr5.ConfigurationImage;
-import com.rusefi.tune.xml.Constant;
-
 import java.util.Objects;
 
 public abstract class IniField {
@@ -44,16 +41,7 @@ public abstract class IniField {
 
     public abstract int getSize();
 
-    /**
-     * @see com.rusefi.config.Field#getValue
-     */
-    public String getValue(ConfigurationImage image) {
-        return null;
-    }
-
-    public void setValue(ConfigurationImage image, Constant constant) {
-        throw new UnsupportedOperationException("On " + getClass());
-    }
+    public abstract <T> T accept(IniFieldVisitor<T> visitor);
 
     @Override
     public boolean equals(Object o) {

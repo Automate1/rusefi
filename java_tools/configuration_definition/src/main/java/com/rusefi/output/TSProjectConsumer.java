@@ -3,9 +3,9 @@ package com.rusefi.output;
 import com.devexperts.logging.Logging;
 import com.opensr5.ConfigurationImage;
 import com.opensr5.ini.IniFileModel;
-import com.opensr5.ini.IniFileModelImpl;
+import com.rusefi.ini.reader.IniFileReaderUtil;
 import com.rusefi.*;
-import com.rusefi.binaryprotocol.MsqFactory;
+import com.rusefi.tune.xml.MsqFactory;
 import com.rusefi.tools.tune.FileLinesHelper;
 import com.rusefi.tune.xml.Msq;
 import com.rusefi.util.LazyFileImpl;
@@ -18,7 +18,7 @@ import java.util.List;
 
 import static com.rusefi.ReaderStateImpl.INCLUDE_FILE;
 import static com.rusefi.VariableRegistry.unquote;
-import static com.rusefi.util.IoUtils.CHARSET;
+import static com.rusefi.util.LazyFile.CHARSET;
 
 /**
  * [Constants]
@@ -88,7 +88,7 @@ public class TSProjectConsumer implements ConfigurationConsumer {
 
     private void testFreshlyProducedIniFile(String fileName) {
         try {
-            IniFileModel ini = IniFileModelImpl.readIniFile(fileName);
+            IniFileModel ini = IniFileReaderUtil.readIniFile(fileName);
             ConfigurationImage ci = new ConfigurationImage(ini.getMetaInfo().getPageSize(0));
             Msq msq = MsqFactory.valueOf(ci, ini);
             msq.writeXmlFile("quick-self-test.xml");
