@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "pulse_input.h"
 #include "tunerstudio_outputs.h"
 
