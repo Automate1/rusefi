@@ -1550,7 +1550,7 @@
 #define SentInput_NONE 0
 #define show_tcu_gauges false
 #define show_vvt_output_pin true
-#define SIGNATURE_HASH 4049587901
+#define SIGNATURE_HASH 1058272277
 #define SIMULATOR_TUNE_BIN_FILE_NAME "generated/simulator_tune_image.bin"
 #define SIMULATOR_TUNE_BIN_FILE_NAME_PREFIX "generated/simulator_tune_image"
 #define SIMULATOR_TUNE_BIN_FILE_NAME_SUFFIX ".bin"
@@ -1842,6 +1842,7 @@
 #define ts_command_e_TS_WIDEBAND_FLASH_BY_ID 35
 #define ts_command_e_TS_WIDEBAND_FLASH_BY_ID_FILE 38
 #define ts_command_e_TS_WIDEBAND_PING_BY_ID 34
+#define ts_command_e_TS_WIDEBAND_RESTART 39
 #define ts_command_e_TS_WIDEBAND_SET_IDX_BY_ID 33
 #define ts_command_e_TS_WIDEBAND_SET_SENS_BY_ID 37
 #define ts_command_e_TS_X14 20
@@ -1852,6 +1853,7 @@
 #define TS_COMPOSITE_READ 3
 #define TS_CRC_CHECK_COMMAND 'k'
 #define TS_CRC_CHECK_COMMAND_char k
+#define ts_ecu_locking true
 #define TS_EXECUTE 'E'
 #define TS_EXECUTE_char E
 #define TS_GET_COMPOSITE_BUFFER_DONE_DIFFERENTLY '8'
@@ -2142,7 +2144,7 @@
 #define ts_show_wastegate_sensor true
 #define ts_show_wbo_canbus_index true
 #define ts_show_wbo_canbus_set_index true
-#define TS_SIGNATURE "rusEFI master.2026.01.23.uaefi121.4049587901"
+#define TS_SIGNATURE "rusEFI master.2026.01.23.uaefi121.1058272277"
 #define TS_SIMULATE_CAN '>'
 #define TS_SIMULATE_CAN_char >
 #define TS_TEST_COMMAND 't'
