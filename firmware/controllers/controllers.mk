@@ -38,7 +38,6 @@ CONTROLLERS_SRC_CPP = \
 	$(CONTROLLERS_DIR)/engine_cycle/prime_injection.cpp \
 	$(CONTROLLERS_DIR)/engine_cycle/aux_valves.cpp \
 	$(CONTROLLERS_DIR)/engine_cycle/fuel_schedule.cpp \
-	$(CONTROLLERS_DIR)/engine_cycle/rotational_idle.cpp \
 	$(CONTROLLERS_DIR)/flash_main.cpp \
 	$(CONTROLLERS_DIR)/storage.cpp \
 	$(CONTROLLERS_DIR)/storage_flash.cpp \
@@ -98,4 +97,4 @@ CONTROLLERS_INC=\
 	$(CONTROLLERS_DIR)/actuators \
 	$(CONTROLLERS_DIR)/actuators/gppwm \
 	$(CONTROLLERS_DIR)/serial \
-	
+
