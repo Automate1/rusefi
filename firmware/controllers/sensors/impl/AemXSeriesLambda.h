@@ -5,7 +5,7 @@
 #include "wideband_state_generated.h"
 
 // Following codes "extend" wbo::Fault codes
-#define HACK_INVALID_AEM 7
+#define HACK_INVALID_AEM 8
 
 // todo: static_cast<uint8_t>(Fault::LegacyProtocol);
 
@@ -40,7 +40,7 @@ private:
 
 	const uint8_t m_sensorIndex;
 	// raw fault code from sensor
-	uint8_t m_faultCode;
+	uint8_t m_stateCode;
 	// Used by both AEM and rusEFI WBO
 	bool m_afrIsValid;
 	// Used for AEM sensor only

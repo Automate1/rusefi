@@ -788,7 +788,7 @@ Write SD card log even when powered by USB
 Second harmonic (aka double) is usually quieter background noise
 
 ### yesUnderstandLocking
-
+Unlocking only via rusEFI console using 'unlock PICODEBUG' command. Use 'reset to default firmware' if pincode is lost.
 
 ### silentTriggerError
 Sometimes we have a performance issue while printing error
@@ -1971,6 +1971,21 @@ Retard timing to remove from actual final timing (after all corrections) due to 
 
 ### vvlController.deactivationRpmWindow
 
+
+### rotationalIdleController.enabled
+rotational idle enable feature
+
+### rotationalIdleController.auto_engage
+Automatic engagement of rotational idle
+
+### rotationalIdleController.max_tps
+Engage rotational idle under this Driver Intent.
+
+### rotationalIdleController.auto_engage_clt_enable
+Rotational Idle Auto engage CLT
+
+### rotationalIdleController.auto_engage_clt
+Rotational Idle Auto engage CLT.
 
 ### tcu_shiftTime
 

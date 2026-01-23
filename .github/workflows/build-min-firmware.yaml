@@ -12,8 +12,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-         # - meta-info: config/boards/f407-discovery/meta-info.env
-         #   build-target: f407-discovery
+          - meta-info: config/boards/f407-discovery/meta-info.env
+            build-target: f407-discovery
 
           - meta-info: config/boards/hellen/uaefi/meta-info.env
             build-target: uaefi

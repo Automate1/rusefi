@@ -39,11 +39,26 @@ public interface IniFileModel {
 
     Map<String, DialogModel.Field> getFieldsInUiOrder();
 
-    String getXBin(String tableName);
-
-    Set<String> getTables();
-
-    String getYBin(String tableName);
 
     Map<String, DialogModel> getDialogs();
+
+    String getDialogKeyByTitle(String dialogTitle);
+
+    IniField findByOffset(int i);
+
+    Map<String, GaugeCategoryModel> getGaugeCategories();
+
+    Map<String, GaugeModel> getGauges();
+
+    GaugeModel getGauge(String name);
+
+    Map<String, String> getTopicHelp();
+
+    Map<String, ContextHelpModel> getContextHelp();
+
+    ContextHelpModel getContextHelp(String referenceName);
+
+    Map<String, TableModel> getTables();
+
+    TableModel getTable(String name);
 }

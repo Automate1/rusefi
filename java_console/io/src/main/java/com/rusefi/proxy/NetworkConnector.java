@@ -4,8 +4,8 @@ import com.devexperts.logging.Logging;
 import com.opensr5.ConfigurationImage;
 import com.opensr5.ini.field.StringIniField;
 import com.rusefi.Timeouts;
+import com.rusefi.Version;
 import com.rusefi.binaryprotocol.BinaryProtocol;
-import com.rusefi.config.Field;
 import com.rusefi.config.generated.Integration;
 import com.rusefi.io.AbstractConnectionStateListener;
 import com.rusefi.io.IoStream;
@@ -13,7 +13,6 @@ import com.rusefi.io.LinkManager;
 import com.rusefi.io.commands.HelloCommand;
 import com.rusefi.io.tcp.BinaryProtocolServer;
 import com.rusefi.io.tcp.TcpIoStream;
-import com.rusefi.core.rusEFIVersion;
 import com.rusefi.server.ControllerInfo;
 import com.rusefi.server.SessionDetails;
 import com.rusefi.server.rusEFISSLContext;
@@ -24,11 +23,11 @@ import org.jetbrains.annotations.NotNull;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 
 import static com.rusefi.binaryprotocol.BinaryProtocol.sleep;
 
@@ -48,6 +47,13 @@ public class NetworkConnector implements Closeable {
     public static final byte UPDATE_FIRMWARE_RELEASE = 17;
     private final static Logging log = Logging.getLogging(NetworkConnector.class);
     private boolean isClosed;
+
+    public static @NotNull String getString(ConfigurationImage image, int offset, int size) {
+        ByteBuffer bb = image.getByteBuffer(offset, size);
+        byte[] bytes = new byte[size];
+        bb.get(bytes);
+        return new String(bytes).trim();
+    }
 
     public NetworkConnectorResult start(Implementation implementation, String authToken, String controllerPort, NetworkConnectorContext context) {
         return start(implementation, authToken, controllerPort, context, new ReconnectListener() {
@@ -127,7 +133,7 @@ public class NetworkConnector implements Closeable {
     private static SessionDetails start(Implementation implementation, ActivityListener activityListener, int serverPortForControllers, LinkManager linkManager, String authToken, final TcpIoStream.DisconnectListener disconnectListener, int oneTimeToken, ControllerInfo controllerInfo, final NetworkConnectorContext context) throws IOException {
         IoStream targetEcuSocket = linkManager.getConnector().getBinaryProtocol().getStream();
 
-        SessionDetails deviceSessionDetails = new SessionDetails(implementation, controllerInfo, authToken, oneTimeToken, rusEFIVersion.CONSOLE_VERSION);
+        SessionDetails deviceSessionDetails = new SessionDetails(implementation, controllerInfo, authToken, oneTimeToken, Version.CONSOLE_VERSION);
 
         Socket socket;
         try {
@@ -194,7 +200,7 @@ public class NetworkConnector implements Closeable {
         StringIniField field = (StringIniField) binaryProtocol.getIniFile().getIniField(key);
         Objects.requireNonNull(field, () -> key + " not found");
         ConfigurationImage image = binaryProtocol.getControllerConfiguration();
-        return Field.getString(image, field.getOffset(), field.getSize());
+        return getString(image, field.getOffset(), field.getSize());
     }
 
     @Override
