@@ -2,7 +2,7 @@
 
 #if defined(DFROBOT_DAC)
 
-#include "dfrobot_dac_config"
+#include "dfrobot_dac_config.h"
 #include <cstddef>
 #include <cstdint>
 
