@@ -21,9 +21,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "dfr0971_config.h"
 #include "pch.h"
-
 
 #include "trigger_central.h"
 #include "script_impl.h"
@@ -62,7 +60,8 @@
 #include "adc_subscription.h"
 #include "gc_generic.h"
 
-#if DFR0971_BOARD_COUNT > 0
+#if DFROBOT_DAC
+	#include "dfrobot_dac_config.h"
 	#include "dfr0971_controller.h"
 #endif
 
@@ -396,7 +395,7 @@ void commonInitEngineController() {
 	addConsoleAction("reset_accel", resetAccel);
 #endif /* EFI_PROD_CODE */
 
-#if DFR0971_BOARD_COUNT > 0
+#if DFROBOT_DAC
     initDfr0971();
 #endif
 
