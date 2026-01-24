@@ -5,7 +5,7 @@
 #include "pch.h"
 #include "dfrobot_dac_config.h"
 #include "i2c_bb.h"
-#include "dfr0971.h"
+#include "dfrobot_dac.h"
 #include <algorithm>
 
 

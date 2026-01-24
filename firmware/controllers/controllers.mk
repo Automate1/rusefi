@@ -75,7 +75,7 @@ CONTROLLERS_SRC_CPP = \
 	$(CONTROLLERS_DIR)/hysteresis.cpp \
 	$(CONTROLLERS_DIR)/max_limit_with_hysteresis.cpp \
 	$(CONTROLLERS_DIR)/long_term_fuel_trim.cpp \
-	$(CONTROLLERS_DIR)/actuators/dfr0971/dfr0971_controller.cpp \
+	$(CONTROLLERS_DIR)/actuators/dfrobot_dac/dfrobot_dac_controller.cpp \
 
 CONTROLLERS_INC=\
 	$(CONTROLLERS_DIR) \
@@ -99,4 +99,4 @@ CONTROLLERS_INC=\
 	$(CONTROLLERS_DIR)/actuators \
 	$(CONTROLLERS_DIR)/actuators/gppwm \
 	$(CONTROLLERS_DIR)/serial \
-	$(CONTROLLERS_DIR)/actuators/dfr0971 \
+	$(CONTROLLERS_DIR)/actuators/dfrobot_dac \

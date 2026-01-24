@@ -3,8 +3,8 @@
 
 	#include "pch.h"
 	#include "dfrobot_dac_config.h"       
-	#include "dfr0971.h"
-	#include "dfr0971_controller.h"
+	#include "dfrobot_dac.h"
+	#include "dfrobot_dac_controller.h"
 	#include "i2c_bb.h"
 
 // Single I2C bus for all DFR0971 boards
