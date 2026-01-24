@@ -32,19 +32,28 @@ void initDfrobotDac() {
 }
 
 
-// Set a DFR0971 output by board number and channel
+// Set a DFR output by board number and channel
 // Input percent: 0.0 - 100.0, scaled internally to 0-4095
 void dfrobotDacSetPercent(size_t board, uint8_t channel, float percent) {
     if (board >= DFROBOT_DAC_BOARD_COUNT) {
         return; // invalid board index
     }
 
-    // Clamp percent
-    if (percent < 0.0f) percent = 0.0f;
-    if (percent > 100.0f) percent = 100.0f;
+	const auto& cfg = dfrobotDacBoards[board];
 
-    // Scale 0-100% to 0-4095
-    uint16_t value = static_cast<uint16_t>((percent / 100.0f) * 4095.0f);
+    if (channel >= cfg.channelCount) {
+        return;
+	}
+	
+    // Clamp percent
+    percent = clampF(percent, 0.0f, 100.0f);
+
+    float userVolt = (percent / 100.0f) * cfg.maxUserVolt;
+
+    float dacFraction = userVolt / cfg.maxHardwareVolt;
+
+    uint16_t value = static_cast<uint16_t>(
+        dacFraction * cfg.dacFullScale
 
     // Write value to DFR
     dfrobotBoards[board]->setOutput(channel, value);
