@@ -8,10 +8,6 @@
 #include "dfr0971.h"
 #include <algorithm>
 
-DfrobotDac::DfrobotDac(BitbangI2c* i2c, uint8_t address)
-    : m_i2c(i2c)
-    , m_address(address) {
-}
 
 void DfrobotDac::setOutput(uint8_t channel, uint16_t value) {
     value = std::min<uint16_t>(value, 4095);
