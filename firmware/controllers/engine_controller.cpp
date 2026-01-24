@@ -60,7 +60,7 @@
 #include "adc_subscription.h"
 #include "gc_generic.h"
 
-#if DFROBOT_DAC
+#if define(DFROBOT_DAC)
 	#include "dfrobot_dac_config.h"
 	#include "dfr0971_controller.h"
 #endif
@@ -395,7 +395,7 @@ void commonInitEngineController() {
 	addConsoleAction("reset_accel", resetAccel);
 #endif /* EFI_PROD_CODE */
 
-#if DFROBOT_DAC
+#if define(DFROBOT_DAC)
     initDfr0971();
 #endif
 
