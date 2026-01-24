@@ -6,9 +6,9 @@
 #include <cstddef>
 #include <cstdint>
 
-void initDfr0971();
+void initDfrobotDac();
 
-void dfr0971SetPercent(size_t board,
+void dfrobotDacSetPercent(size_t board,
                        uint8_t channel,
                        float percent);
 

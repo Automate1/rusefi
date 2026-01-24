@@ -6,9 +6,9 @@
 
 class BitbangI2c;
 
-class Dfr0971 {
+class DfrobotDAC {
 public:
-    Dfr0971(BitbangI2c* i2c, uint8_t address);
+    DfrobotDAC(BitbangI2c* i2c, uint8_t address);
 
 	// channel: 0 or 1
     // value:   raw DAC value (driver does not scale)

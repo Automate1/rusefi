@@ -3,17 +3,17 @@
 
 
 #include "pch.h"
-#include "dfr_dac_config.h"
+#include "dfrobot_dac_config.h"
 #include "i2c_bb.h"
 #include "dfr0971.h"
 #include <algorithm>
 
-Dfr0971::Dfr0971(BitbangI2c* i2c, uint8_t address)
+DfrobotDAC::DfrobotDAC(BitbangI2c* i2c, uint8_t address)
     : m_i2c(i2c)
     , m_address(address) {
 }
 
-void Dfr0971::setOutput(uint8_t channel, uint16_t value) {
+void DfrobotDAC::setOutput(uint8_t channel, uint16_t value) {
     value = std::min<uint16_t>(value, 4095);
 
     uint8_t buf[3];
@@ -24,4 +24,4 @@ void Dfr0971::setOutput(uint8_t channel, uint16_t value) {
     m_i2c->write(m_address, buf, sizeof(buf));
 }
 
-#endif // DFROBOT_DAC_ > 
+#endif // DFROBOT_DAC
