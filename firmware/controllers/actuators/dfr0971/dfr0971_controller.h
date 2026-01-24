@@ -1,6 +1,6 @@
 #pragma once
 
-#if defined(DFR0971_BOARD_COUNT) && DFR0971_BOARD_COUNT > 0
+#if defined(DFROBOT_DAC)
 
 
 #include <cstddef>

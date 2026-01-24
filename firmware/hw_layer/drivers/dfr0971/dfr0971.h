@@ -1,6 +1,6 @@
 #pragma once
 
-#if defined(DFR0971_BOARD_COUNT) && DFR0971_BOARD_COUNT > 0
+#if defined(DFROBOT_DAC)
 
 #include <cstdint>
 
@@ -19,4 +19,4 @@ private:
     uint8_t m_address;
 };
 
-#endif // DFR0971_BOARD_COUNT > 0
+#endif // DFROBOT_DAC
