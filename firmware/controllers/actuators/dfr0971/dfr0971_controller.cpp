@@ -1,7 +1,8 @@
 
 #if defined(DFROBOT_DAC)
 
-	#include "pch.h"       
+	#include "pch.h"
+	#include "dfrobot_dac_config.h"       
 	#include "dfr0971.h"
 	#include "dfr0971_controller.h"
 	#include "i2c_bb.h"
@@ -11,32 +12,21 @@
 // Single I2C bus for all DFR0971 boards
 static BitbangI2c dfrI2c;
 
-// Array of board instances
-static Dfr0971* dfrBoards[DFR0971_BOARD_COUNT];
-
-// I2C addresses per board (modify as needed)
-static constexpr uint8_t dfrAddresses[DFR0971_BOARD_COUNT] = {
-    0x60,
-#if DFR0971_BOARD_COUNT > 1
-    0x61,
-#endif
-};
-
 // Initialize all DFR0971 boards
 void initDfr0971() {
     // Initialize the I2C bus with fixed pins for uaEFI board
     dfrI2c.init((brain_pin_e) Gpio_E13, (brain_pin_e) Gpio_E14);
 
     // Create instances
-    static Dfr0971 instances[DFR0971_BOARD_COUNT] = {
+    static Dfr0971 instances[DFROBOT_DAC_BOARD_COUNT] = {
         Dfr0971(&dfrI2c, dfrAddresses[0]),
-#if DFR0971_BOARD_COUNT > 1
+#if DFROBOT_DAC_BOARD_COUNT > 1
         Dfr0971(&dfrI2c, dfrAddresses[1]),
 #endif
     };
 
     // Save pointers for global access
-    for (size_t i = 0; i < DFR0971_BOARD_COUNT; i++) {
+    for (size_t i = 0; i < DFROBOT_DAC_BOARD_COUNT; i++) {
         dfrBoards[i] = &instances[i];
     }
 }
@@ -44,7 +34,7 @@ void initDfr0971() {
 // Set a DFR0971 output by board number and channel
 // Input percent: 0.0 - 100.0, scaled internally to 0-4095
 void dfr0971SetPercent(size_t board, uint8_t channel, float percent) {
-    if (board >= DFR0971_BOARD_COUNT) {
+    if (board >= DFROBOT_DAC_BOARD_COUNT) {
         return; // invalid board index
     }
 
@@ -59,4 +49,4 @@ void dfr0971SetPercent(size_t board, uint8_t channel, float percent) {
     dfrBoards[board]->setOutput(channel, value);
 }
 
-#endif // DFR0971_BOARD_COUNT > 0
+#endif // DFROBOT_DAC

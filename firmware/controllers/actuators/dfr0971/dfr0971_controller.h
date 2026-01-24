@@ -2,7 +2,7 @@
 
 #if defined(DFROBOT_DAC)
 
-
+#include "dfrobot_dac_config"
 #include <cstddef>
 #include <cstdint>
 
@@ -13,4 +13,4 @@ void dfr0971SetPercent(size_t board,
                        float percent);
 
 
-#endif // DFR0971_BOARD_COUNT > 0
+#endif // DFROBOT_DAC

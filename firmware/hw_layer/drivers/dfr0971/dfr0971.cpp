@@ -3,6 +3,7 @@
 
 
 #include "pch.h"
+#include "dfr_dac_config.h"
 #include "i2c_bb.h"
 #include "dfr0971.h"
 #include <algorithm>
@@ -23,4 +24,4 @@ void Dfr0971::setOutput(uint8_t channel, uint16_t value) {
     m_i2c->write(m_address, buf, sizeof(buf));
 }
 
-#endif // DFR0971_BOARD_COUNT > 0
+#endif // DFROBOT_DAC_ > 
