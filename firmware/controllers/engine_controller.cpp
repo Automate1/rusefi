@@ -396,7 +396,7 @@ void commonInitEngineController() {
 #endif /* EFI_PROD_CODE */
 
 #if defined(DFROBOT_DAC)
-    initDfrobatDac();
+    initDfrobotDac();
 #endif
 
 #if EFI_SIMULATOR || EFI_UNIT_TEST
