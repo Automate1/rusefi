@@ -18,7 +18,7 @@ void initDfrobotDac() {
     // Fixed pins for uaEFI board
 	dfrobotI2c.init(DFROBOT_DAC_SCL_PIN, DFROBOT_DAC_SDA_PIN);
 
-    static DfrobotDAC instances[DFROBOT_DAC_BOARD_COUNT];
+    static DfrobotDac instances[DFROBOT_DAC_BOARD_COUNT];
 
     for (size_t i = 0; i < DFROBOT_DAC_BOARD_COUNT; i++) {
         instances[i].init(
