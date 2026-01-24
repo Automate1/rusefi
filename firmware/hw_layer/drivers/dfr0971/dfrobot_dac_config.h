@@ -3,8 +3,8 @@
 #if defined(DFROBOT_DAC)
 
 // -------- I2C bus configuration --------
-constexpr brain_pin_e DFROBOT_DAC_SCL_PIN = Gpio_E13;
-constexpr brain_pin_e DFROBOT_DAC_SDA_PIN = Gpio_E14;
+constexpr brain_pin_e DFROBOT_DAC_SCL_PIN = (brain_pin_e)Gpio_E13;
+constexpr brain_pin_e DFROBOT_DAC_SDA_PIN = (brain_pin_e)Gpio_E14;
 
 constexpr size_t DFROBOT_DAC_BOARD_COUNT = 1;
 

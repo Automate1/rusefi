@@ -11,7 +11,7 @@
 static BitbangI2c dfrobotI2c;
 
 // One instance per board
-static DfrobotDAC* dfrobotBoards[DFROBOT_DAC_BOARD_COUNT];
+static DfrobotDac* dfrobotBoards[DFROBOT_DAC_BOARD_COUNT];
 
 // Initialize all DFRobot DAC boards
 void initDfrobotDac() {
@@ -27,7 +27,7 @@ void initDfrobotDac() {
             dfrobotDacBoards[i].channelCount
         );
 
-        dfrobotDacBoards[i] = &instances[i];
+        dfrobotBoards[i] = &instances[i];
     }
 }
 
