@@ -8,17 +8,17 @@
 	#include "i2c_bb.h"
 
 // Single I2C bus for all DFR0971 boards
-static BitbangI2c dfrobicI2c;
+static BitbangI2c dfrobotI2c;
 
 // One instance per board
-static DfrobotDac* dfrobotBoards[DFROBOT_DAC_BOARD_COUNT];
+static DfrobotDAC* dfrobotBoards[DFROBOT_DAC_BOARD_COUNT];
 
 // Initialize all DFRobot DAC boards
 void initDfrobotDac() {
     // Fixed pins for uaEFI board
-    dfrobotI2c.init((brain_pin_e)Gpio_E13, (brain_pin_e)Gpio_E14);
+	dfrobotI2c.init(DFROBOT_DAC_SCL_PIN, DFROBOT_DAC_SDA_PIN);
 
-    static DfrobotDac instances[DFROBOT_DAC_BOARD_COUNT];
+    static DfrobotDAC instances[DFROBOT_DAC_BOARD_COUNT];
 
     for (size_t i = 0; i < DFROBOT_DAC_BOARD_COUNT; i++) {
         instances[i].init(
@@ -27,7 +27,7 @@ void initDfrobotDac() {
             dfrobotDacBoards[i].channelCount
         );
 
-        dfrobotBoards[i] = &instances[i];
+        dfrobotDacBoards[i] = &instances[i];
     }
 }
 
