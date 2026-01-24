@@ -62,7 +62,7 @@
 
 #if defined(DFROBOT_DAC)
 	#include "dfrobot_dac_config.h"
-	#include "dfr0971_controller.h"
+	#include "dfrobot_dac_controller.h"
 #endif
 
 
