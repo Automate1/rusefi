@@ -11,7 +11,7 @@
 static BitbangI2c dfrobotI2c;
 
 // One instance per board
-static DfrobotDac* dfrobotBoards[DFROBOT_DAC_BOARD_COUNT];
+// static DfrobotDac* dfrobotBoards[DFROBOT_DAC_BOARD_COUNT];  //unused
 
 static constexpr size_t DFROBOT_DAC_TOTAL_CHANNELS =
     DFROBOT_DAC_BOARD_COUNT * DFROBOT_DAC_CHANNELS_PER_BOARD;
