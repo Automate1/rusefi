@@ -12,7 +12,6 @@
 #endif // !defined(STM32F4) && EFI_CAN_SUPPORT
 
 #if defined(DFROBOT_DAC)
-
 #include "dfrobot_dac.h"
 
 static int dfr_dac_set(lua_State* L) {
@@ -38,6 +37,7 @@ static int dfr_dac_get(lua_State* L) {
     lua_pushnumber(L, dfrobotDacOutputPercent[idx]);
     return 1;
 }
+#endif //DFROBOT_DAC
 
 void configureRusefiLuaHooksExt(lua_State* lState) {
 #if !defined(STM32F4) && EFI_CAN_SUPPORT
