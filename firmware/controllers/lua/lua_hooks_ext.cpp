@@ -1,13 +1,7 @@
 #include "pch.h"
 
 #include "rusefi_lua.h"
-#include "lua_api.h"
 #include "lua_hooks.h"
-
-#include "pch.h"
-
-#include "lua/lua_api.h"
-#include "lua/lua_hooks.h"
 
 #if defined(DFROBOT_DAC)
 	#include "dfrobot_dac.h"
@@ -18,32 +12,32 @@
 #endif // !defined(STM32F4) && EFI_CAN_SUPPORT
 
 #if defined(DFROBOT_DAC)
-// Set a DAC output by board and channel (0-based)
-LUA_FUNCTION(dfr_dac_set) {
-    size_t board   = luaL_checkinteger(L, 1);
-    size_t channel = luaL_checkinteger(L, 2);
-    float percent  = luaL_checknumber(L, 3);
 
-    if (board >= DFROBOT_DAC_BOARD_COUNT) return 0;
-    if (channel >= dfrobotBoards[board]->getChannelCount()) return 0;
+#include "dfrobot_dac.h"
 
-    dfrobotBoards[board]->setPercent(channel, percent);
+static int dfr_dac_set(lua_State* L) {
+    int idx = luaL_checkinteger(L, 1);
+    float percent = luaL_checknumber(L, 2);
 
+    if (idx < 0 || idx >= (int)DFROBOT_DAC_TOTAL_CHANNELS) {
+        return 0;
+    }
+
+    dfrobotDacOutputPercent[idx] = percent;
     return 0; // no return values
 }
 
-// Get DAC output percent by board and channel (0-based)
-LUA_FUNCTION(dfr_dac_get) {
-    size_t board   = luaL_checkinteger(L, 1);
-    size_t channel = luaL_checkinteger(L, 2);
+static int dfr_dac_get(lua_State* L) {
+    int idx = luaL_checkinteger(L, 1);
 
-    if (board >= DFROBOT_DAC_BOARD_COUNT) return 0;
-    if (channel >= dfrobotBoards[board]->getChannelCount()) return 0;
+    if (idx < 0 || idx >= (int)DFROBOT_DAC_TOTAL_CHANNELS) {
+        lua_pushnumber(L, 0);
+        return 1;
+    }
 
-    lua_pushnumber(L, dfrobotBoards[board]->getPercent());
-    return 1; // return 1 value
+    lua_pushnumber(L, dfrobotDacOutputPercent[idx]);
+    return 1;
 }
-#endif
 
 void configureRusefiLuaHooksExt(lua_State* lState) {
 #if !defined(STM32F4) && EFI_CAN_SUPPORT
@@ -51,7 +45,7 @@ void configureRusefiLuaHooksExt(lua_State* lState) {
 #endif // !defined(STM32F4) && EFI_CAN_SUPPORT
 
 #if defined(DFROBOT_DAC)
-    LUA_REGISTER(dfr_dac_set);
-    LUA_REGISTER(dfr_dac_get);
+    lua_register(lState, "dfr_dac_set", dfr_dac_set);
+    lua_register(lState, "dfr_dac_get", dfr_dac_get);
 #endif
 }
