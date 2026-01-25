@@ -13,6 +13,14 @@ static BitbangI2c dfrobotI2c;
 // One instance per board
 static DfrobotDac* dfrobotBoards[DFROBOT_DAC_BOARD_COUNT];
 
+static constexpr size_t DFROBOT_DAC_TOTAL_CHANNELS =
+    DFROBOT_DAC_BOARD_COUNT * DFROBOT_DAC_CHANNELS_PER_BOARD;
+
+float dfrobotDacOutputPercent[DFROBOT_DAC_TOTAL_CHANNELS] = {0};
+
+size_t getDfrobotDacTotalChannels() {
+    return DFROBOT_DAC_TOTAL_CHANNELS;
+
 // Initialize all DFRobot DAC boards
 void initDfrobotDac() {
     // Fixed pins for uaEFI board
@@ -31,7 +39,6 @@ void initDfrobotDac() {
     }
 }
 
-
 // Set a DFR output by board number and channel
 // Input percent: 0.0 - 100.0, scaled internally to 0-4095
 void dfrobotDacSetPercent(size_t board, uint8_t channel, float percent) {
@@ -44,7 +51,7 @@ void dfrobotDacSetPercent(size_t board, uint8_t channel, float percent) {
     if (channel >= cfg.channelCount) {
         return;
 	}
-	
+
     // Clamp percent
     percent = clampF(percent, 0.0f, 100.0f);
 
@@ -60,3 +67,4 @@ void dfrobotDacSetPercent(size_t board, uint8_t channel, float percent) {
 }
 
 #endif // DFROBOT_DAC
+
