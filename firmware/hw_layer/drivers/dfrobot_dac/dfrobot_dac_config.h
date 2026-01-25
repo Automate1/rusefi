@@ -11,9 +11,8 @@ constexpr size_t DFROBOT_DAC_BOARD_COUNT = 1;
 struct DfrobotDacBoardConfig {
     uint8_t i2cAddress;
     uint8_t channelCount;
- 	float maxUserVolt;
+ 	float maxUserVolt;   // e.g. 5.0f
 	float maxHardwareVolt;  // e.g. 10.0f
-    float maxUserVolt;      // e.g. 5.0f
     uint16_t dacFullScale;  // e.g. 4095
 };
 
