@@ -13,4 +13,12 @@ void dfrobotDacSetPercent(size_t board,
                        float percent);
 
 
+// Total number of exposed DAC channels
+constexpr size_t DFROBOT_DAC_TOTAL_CHANNELS =
+    DFROBOT_DAC_BOARD_COUNT * DFROBOT_DAC_CHANNELS_PER_BOARD;
+
+// Backing storage for TS + Lua
+extern float dfrobotDacOutputPercent[DFROBOT_DAC_TOTAL_CHANNELS];
+
 #endif // DFROBOT_DAC
+

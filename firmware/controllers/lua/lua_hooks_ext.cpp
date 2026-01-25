@@ -4,7 +4,7 @@
 #include "lua_hooks.h"
 
 #if defined(DFROBOT_DAC)
-	#include "dfrobot_dac.h"
+	#include "dfrobot_dac_controller.h"
 #endif
 
 #if !defined(STM32F4) && EFI_CAN_SUPPORT
