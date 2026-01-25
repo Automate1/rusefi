@@ -1,7 +1,13 @@
 #include "pch.h"
 
 #include "rusefi_lua.h"
+#include "lua_api.h"
 #include "lua_hooks.h"
+
+#include "pch.h"
+
+#include "lua/lua_api.h"
+#include "lua/lua_hooks.h"
 
 #if defined(DFROBOT_DAC)
 	#include "dfrobot_dac.h"
