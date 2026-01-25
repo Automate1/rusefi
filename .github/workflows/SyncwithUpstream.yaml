@@ -3,10 +3,6 @@ name: Sync upstream into all branches
 on:
   workflow_dispatch:
 
-permissions:
-  contents: write
-  issues: write
-
 jobs:
   sync:
     runs-on: ubuntu-latest
