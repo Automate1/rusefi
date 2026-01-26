@@ -2,6 +2,7 @@ package com.opensr5.ini;
 
 import com.opensr5.ini.field.IniField;
 import com.rusefi.config.Field;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -95,7 +96,11 @@ public class ImmutableIniFileModel implements IniFileModel {
 
     @Override
     public Optional<IniField> findIniField(String key) {
-        return Optional.ofNullable(allIniFields.get(key));
+        IniField field = allIniFields.get(key);
+        if (field == null) {
+            field = secondaryIniFields.get(key);
+        }
+        return Optional.ofNullable(field);
     }
 
     @Override
@@ -204,6 +209,7 @@ public class ImmutableIniFileModel implements IniFileModel {
     }
 
     @Override
+    @Nullable
     public TableModel getTable(String name) {
         return tables.get(name);
     }
