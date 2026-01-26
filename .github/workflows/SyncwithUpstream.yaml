@@ -2,8 +2,9 @@ name: Sync upstream into all branches
 
 on:
   workflow_dispatch:
-  - cron: '0 4 * * *'
-  
+  schedule:
+    - cron: '0 4 * * *'
+
 jobs:
   sync:
     runs-on: ubuntu-latest
