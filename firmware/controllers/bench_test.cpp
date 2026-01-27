@@ -26,6 +26,7 @@
 #include "long_term_fuel_trim.h"
 #include "can_common.h"
 #include "can_rx.h"
+#include "torque_estimator.h"
 #include "value_lookup.h"
 #include "can_msg_tx.h"
 #include "gm_sbc.h" // setStepperHw
@@ -585,6 +586,10 @@ static void handleCommandX14(uint16_t index) {
 	case TS_WIDEBAND_UPDATE_FILE:
 		// broadcast, for old WBO FWs
 		requestWidebandUpdate(0xff, index == TS_WIDEBAND_UPDATE_FILE);
+		return;
+	case TS_ESTIMATE_TORQUE_TABLE:
+	  estimateTorqueTable();
+	  onApplyPreset();
 		return;
 	case COMMAND_X14_UNUSED_15:
 		return;
