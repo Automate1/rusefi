@@ -13,10 +13,10 @@
 
 #if defined(DFROBOT_DAC)
 
-}static int lua_dfr_dac_set(lua_State* L) {
-    int board   = luaL_checkinteger(L, 1);
-    int channel = luaL_checkinteger(L, 2);
-    float pct   = luaL_checknumber(L, 3);
+}static int lua_dfr_dac_set(lua_State* lState) {
+    int board   = luaL_checkinteger(lState, 1);
+    int channel = luaL_checkinteger(lState, 2);
+    float pct   = luaL_checknumber(lState, 3);
 
     dfrobotDacSetPercent(
         static_cast<size_t>(board),
@@ -34,9 +34,9 @@ void configureRusefiLuaHooksExt(lua_State* lState) {
 
 
 #if defined(DFROBOT_DAC)
-    lua_register(L, "dfr_dac_set", lua_dfr_dac_set);
+    lua_register(, "dfr_dac_set", lua_dfr_dac_set);
 #else
-    (void)L;
+    (void)lState;
 #endif
 
 }
