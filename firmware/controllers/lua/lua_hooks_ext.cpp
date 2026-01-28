@@ -13,7 +13,7 @@
 
 #if defined(DFROBOT_DAC)
 
-}static int lua_dfr_dac_set(lua_State* lState) {
+static int lua_dfr_dac_set(lua_State* lState) {
     int board   = luaL_checkinteger(lState, 1);
     int channel = luaL_checkinteger(lState, 2);
     float pct   = luaL_checknumber(lState, 3);
