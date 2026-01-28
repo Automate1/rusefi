@@ -13,31 +13,17 @@
 
 #if defined(DFROBOT_DAC)
 
-static int dfr_dac_set(lua_State* L) {
-    int idx = luaL_checkinteger(L, 1);
-    float percent = luaL_checknumber(L, 2);
+LUA_FUNCTION(dfr_dac_set) {
+    int board   = luaL_checkinteger(L, 1);
+    int channel = luaL_checkinteger(L, 2);
+    float pct   = luaL_checknumber(L, 3);
 
-	const int maxChannels = (int)getDfrobotDacTotalChannels();
-
-	if (idx < 0 || idx >= maxChannels) {
+    dfrobotDacSetPercent(
+        static_cast<size_t>(board),
+        static_cast<uint8_t>(channel),
+        pct
+    );
     return 0;
-	}
-
-    dfrobotDacOutputPercent[idx] = percent;
-    return 0; // no return values
-}
-
-static int dfr_dac_get(lua_State* L) {
-    int idx = luaL_checkinteger(L, 1);
-
-	const int maxChannels = (int)getDfrobotDacTotalChannels();
-
-	if (idx < 0 || idx >= maxChannels) {
-    return 0;
-	}
-
-    lua_pushnumber(L, dfrobotDacOutputPercent[idx]);
-    return 1;
 }
 #endif //DFROBOT_DAC
 
@@ -46,8 +32,9 @@ void configureRusefiLuaHooksExt(lua_State* lState) {
     // existing CAN Lua registrations would go here
 #endif // !defined(STM32F4) && EFI_CAN_SUPPORT
 
+
 #if defined(DFROBOT_DAC)
-    lua_register(lState, "dfr_dac_set", dfr_dac_set);
-    lua_register(lState, "dfr_dac_get", dfr_dac_get);
+    LUA_REGISTER(dfr_dac_set);
 #endif
+
 }

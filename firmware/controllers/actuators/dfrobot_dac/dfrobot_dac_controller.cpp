@@ -11,28 +11,17 @@
 static BitbangI2c dfrobotI2c;
 
 // One instance per board
-// static DfrobotDac* dfrobotBoards[DFROBOT_DAC_BOARD_COUNT];  //unused
-
-static constexpr size_t DFROBOT_DAC_TOTAL_CHANNELS =
-    DFROBOT_DAC_BOARD_COUNT * DFROBOT_DAC_CHANNELS_PER_BOARD;
-
-float dfrobotDacOutputPercent[DFROBOT_DAC_TOTAL_CHANNELS] = {0};
-
-size_t getDfrobotDacTotalChannels() {
-    return DFROBOT_DAC_TOTAL_CHANNELS;
+static DfrobotDac dfrobotBoards[DFROBOT_DAC_BOARD_COUNT];  //unused
 
 // Initialize all DFRobot DAC boards
 void initDfrobotDac() {
     // Fixed pins for uaEFI board
 	dfrobotI2c.init(DFROBOT_DAC_SCL_PIN, DFROBOT_DAC_SDA_PIN);
 
-    static DfrobotDac instances[DFROBOT_DAC_BOARD_COUNT];
-
-    for (size_t i = 0; i < DFROBOT_DAC_BOARD_COUNT; i++) {
+        for (size_t i = 0; i < DFROBOT_DAC_BOARD_COUNT; i++) {
         instances[i].init(
             &dfrobotI2c,
             dfrobotDacBoards[i].i2cAddress,
-            dfrobotDacBoards[i].channelCount
         );
 
         dfrobotBoards[i] = &instances[i];

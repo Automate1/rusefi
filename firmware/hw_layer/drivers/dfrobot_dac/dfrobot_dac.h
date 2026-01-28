@@ -16,10 +16,6 @@ public:
         m_channelCount = channelCount;
     }
 
-    uint8_t getChannelCount() const {
-        return m_channelCount;
-    }
-
     void setOutput(uint8_t channel, uint16_t value);
 
 private:
