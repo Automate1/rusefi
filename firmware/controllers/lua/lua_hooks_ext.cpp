@@ -27,7 +27,7 @@ static int lua_dfr_dac_set(lua_State* lState) {
 }
 #endif //DFROBOT_DAC
 
-void configureRusefiLuaHooksExt(lua_State*) {
+void configureRusefiLuaHooksExt(lua_State* lState) {
 #if !defined(STM32F4) && EFI_CAN_SUPPORT
     // existing CAN Lua registrations would go here
 #endif // !defined(STM32F4) && EFI_CAN_SUPPORT
