@@ -34,7 +34,7 @@ void configureRusefiLuaHooksExt(lua_State*) {
 
 
 #if defined(DFROBOT_DAC)
-    lua_register(, "dfr_dac_set", lua_dfr_dac_set);
+    lua_register(lstate, "dfr_dac_set", lua_dfr_dac_set);
 #else
     (void)lState;
 #endif
