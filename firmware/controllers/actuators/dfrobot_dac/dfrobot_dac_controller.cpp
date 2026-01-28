@@ -25,6 +25,7 @@ void initDfrobotDac() {
         instances[i].init(
             &dfrobotI2c,
             dfrobotDacBoards[i].i2cAddress,
+			dfrobotDacBoards[i].channelCount
         );
 
         dfrobotBoards[i] = &instances[i];

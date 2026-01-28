@@ -6,7 +6,14 @@
 constexpr brain_pin_e DFROBOT_DAC_SCL_PIN = (brain_pin_e)Gpio_E13;
 constexpr brain_pin_e DFROBOT_DAC_SDA_PIN = (brain_pin_e)Gpio_E14;
 
+
+// ===== Compile-time limits =====
 constexpr size_t DFROBOT_DAC_BOARD_COUNT = 1;
+constexpr size_t DFROBOT_DAC_CHANNELS_PER_BOARD = 2;
+
+
+constexpr size_t DFROBOT_DAC_TOTAL_CHANNELS =
+    DFROBOT_DAC_BOARD_COUNT * DFROBOT_DAC_CHANNELS_PER_BOARD;
 
 struct DfrobotDacBoardConfig {
     uint8_t i2cAddress;
