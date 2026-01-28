@@ -2,7 +2,6 @@
 
 #include "rusefi_lua.h"
 #include "lua_hooks.h"
-#include "lua_helpers.h"
 
 #if defined(DFROBOT_DAC)
 	#include "dfrobot_dac_controller.h"
@@ -14,7 +13,7 @@
 
 #if defined(DFROBOT_DAC)
 
-LUA_FUNCTION(dfr_dac_set) {
+}static int lua_dfr_dac_set(lua_State* L) {
     int board   = luaL_checkinteger(L, 1);
     int channel = luaL_checkinteger(L, 2);
     float pct   = luaL_checknumber(L, 3);
@@ -35,7 +34,9 @@ void configureRusefiLuaHooksExt(lua_State* lState) {
 
 
 #if defined(DFROBOT_DAC)
-    LUA_REGISTER(dfr_dac_set);
+    lua_register(L, "dfr_dac_set", lua_dfr_dac_set);
+#else
+    (void)L;
 #endif
 
 }
