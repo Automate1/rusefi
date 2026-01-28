@@ -11,7 +11,10 @@
 static BitbangI2c dfrobotI2c;
 
 // One instance per board
-static DfrobotDac dfrobotBoards[DFROBOT_DAC_BOARD_COUNT];  //unused
+static DfrobotDac instances[DFROBOT_DAC_BOARD_COUNT];
+static DfrobotDac* dfrobotBoards[DFROBOT_DAC_BOARD_COUNT];
+
+float dfrobotDacOutputPercent[DFROBOT_DAC_TOTAL_CHANNELS] = {0};
 
 // Initialize all DFRobot DAC boards
 void initDfrobotDac() {
@@ -50,7 +53,7 @@ void dfrobotDacSetPercent(size_t board, uint8_t channel, float percent) {
 
     uint16_t value = static_cast<uint16_t>(
         dacFraction * cfg.dacFullScale
-
+	);
     // Write value to DFR
     dfrobotBoards[board]->setOutput(channel, value);
 }
