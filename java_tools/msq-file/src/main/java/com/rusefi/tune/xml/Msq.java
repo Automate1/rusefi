@@ -7,7 +7,7 @@ import com.rusefi.tune.ConfigurationImageGetterSetter2;
 import com.opensr5.ini.IniFileModel;
 import com.opensr5.ini.field.ArrayIniField;
 import com.opensr5.ini.field.IniField;
-import com.rusefi.Version;
+import com.rusefi.UiVersion;
 import com.rusefi.xml.XmlUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,7 +29,7 @@ public class Msq {
     public Bibliography bibliography = new Bibliography();
 
     public Msq() {
-        versionInfo = new VersionInfo(Integer.toString(Version.CONSOLE_VERSION));
+        versionInfo = new VersionInfo(Integer.toString(UiVersion.CONSOLE_VERSION));
     }
 
     static {
@@ -95,7 +95,7 @@ public class Msq {
 
     public void loadConstant(IniFileModel ini, String key, ConfigurationImage image) {
         IniField field = ini.getAllIniFields().get(key);
-        String value = ConfigurationImageGetterSetter.getValue(field, image);
+        String value = ConfigurationImageGetterSetter.getStringValue(field, image);
         Page page = findPage();
         if (page == null) {
             log.error("Msq: No page");
