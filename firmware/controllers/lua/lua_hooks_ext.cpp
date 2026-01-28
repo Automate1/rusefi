@@ -2,6 +2,7 @@
 
 #include "rusefi_lua.h"
 #include "lua_hooks.h"
+#include "lua_helpers.h"
 
 #if defined(DFROBOT_DAC)
 	#include "dfrobot_dac_controller.h"
