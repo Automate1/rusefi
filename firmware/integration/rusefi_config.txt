@@ -93,7 +93,7 @@
 ! This is the version of the data stored in flash configuration
 ! Any time an incompatible change is made to the configuration format stored in flash,
 ! update this string to the current date!
-#define FLASH_DATA_VERSION 260127
+#define FLASH_DATA_VERSION 260129
 
 ! Remove next line when Java toolset gets adjusted to load those from json config into VariablesRegistry
 ! Also remove file integration/generated/rusefi_config_generated_enums.txt
@@ -917,7 +917,7 @@ spi_device_e digitalPotentiometerSpiDevice;Digital Potentiometer is used by stoc
 	bit useAbsolutePressureForLagTime,"yes","no"
 	! see #8650, only used on the UI
 	bit useLambdaOnInterface,"Lambda","AFR"
-	bit unusedBit_311_29
+	bit useMetricOnInterface,"Metric","Imperial"
 	bit unusedBit_311_30
 	bit unusedBit_311_31
 
@@ -2098,6 +2098,9 @@ uint16_t[VE_LOAD_COUNT x VE_RPM_COUNT] autoscale veTable;;"%", 0.1, 0, 0, 999, 1
 uint16_t[VE_LOAD_COUNT] veLoadBins;;{bitStringValue(fuelUnits, fuelAlgorithm) },	1, 0, 0,  @@MAP_UPPER_LIMIT@@, 0
 uint16_t[VE_RPM_COUNT] veRpmBins;;"RPM",	   1, 0, 0, 18000, 0
 
+! TODO at some point we need to flip this table to use AFR on the affected tests, since otherwise we get some no-to-nice fields as consequence
+! see #9035 for details
+! [tag:lambdaTable]
 uint8_t[FUEL_LOAD_COUNT x FUEL_RPM_COUNT] autoscale lambdaTable;;{useLambdaOnInterface ? "lambda" : "afr"}, { useLambdaOnInterface ? 1/@@PACK_MULT_LAMBDA_CFG@@ : 1/@@PACK_MULT_AFR_CFG@@ }, 0, {useLambdaOnInterface ? 0.6 : 0}, {useLambdaOnInterface ? 1.5 : 25}, {useLambdaOnInterface ? 2 : 1}
 
 uint16_t[FUEL_LOAD_COUNT] lambdaLoadBins;;"",	1, 0, 0, 1000, 0
