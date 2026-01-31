@@ -27,6 +27,8 @@ public class IniDialogTest {
             "\n" +
             "\tdialog = subDialog2, \"Sub Dialog 2\"\n" +
             "\t\tfield = \"Field 2\", field2\n" +
+            "\t\tcommandButton = \"Enable internal trigger simulation\", cmd_enable_self_stim\n" +
+            "\t\tcommandButton = \"Enable external trigger simulation\", cmd_enable_ext_stim" +
             "\n" +
             "\tdialog = mainDialog, \"Main Dialog\", yAxis\n" +
             "\t\tpanel = subDialog1\n" +
@@ -34,7 +36,10 @@ public class IniDialogTest {
             "\n" +
             "\tdialog = complexDialog, \"Complex Dialog\", border\n" +
             "\t\tpanel = subDialog1, West\n" +
-            "\t\tpanel = subDialog2, Center, {field1 > 50}, {field2 < 100}\n";
+            "\t\tpanel = subDialog2, Center, {field1 > 50}, {field2 < 100}\n" +
+            "\t\tpanel = subDialog3, {field1 > 50}, {field2 < 100}\n" +
+            ""
+            ;
 
         RawIniFile lines = IniFileReaderUtil.read(new ByteArrayInputStream(string.getBytes()));
         IniFileModel model = readLines(lines);
@@ -62,10 +67,17 @@ public class IniDialogTest {
         assertNull(panel2.getEnableExpression());
         assertNull(panel2.getVisibleExpression());
 
+        DialogModel subDialog2 = model.getDialogs().get("subDialog2");
+        assertEquals(2, subDialog2.getCommandsOfCurrentDialog().size());
+        assertEquals("Enable internal trigger simulation", subDialog2.getCommandsOfCurrentDialog().get(0).getUiName());
+        assertEquals("cmd_enable_self_stim", subDialog2.getCommandsOfCurrentDialog().get(0).getCommand());
+        assertEquals("Enable external trigger simulation", subDialog2.getCommandsOfCurrentDialog().get(1).getUiName());
+        assertEquals("cmd_enable_ext_stim", subDialog2.getCommandsOfCurrentDialog().get(1).getCommand());
+
         // Test complexDialog with panels with expressions (use dialog key)
         DialogModel complexDialog = model.getDialogs().get("complexDialog");
         assertNotNull(complexDialog);
-        assertEquals(2, complexDialog.getPanels().size());
+        assertEquals(3, complexDialog.getPanels().size());
 
         // Check first panel (West placement, no expressions)
         PanelModel complexPanel1 = complexDialog.getPanels().get(0);
@@ -73,6 +85,13 @@ public class IniDialogTest {
         assertEquals("West", complexPanel1.getPlacement());
         assertNull(complexPanel1.getEnableExpression());
         assertNull(complexPanel1.getVisibleExpression());
+
+        // Check third panel (Center placement, with enable and visible expressions)
+        PanelModel complexPanel3 = complexDialog.getPanels().get(2);
+        assertEquals("subDialog3", complexPanel3.getPanelName());
+        assertEquals(null, complexPanel3.getPlacement());
+        assertEquals("{field1 > 50}", complexPanel3.getEnableExpression());
+        assertEquals("{field2 < 100}", complexPanel3.getVisibleExpression());
 
         // Check second panel (Center placement, with enable and visible expressions)
         PanelModel complexPanel2 = complexDialog.getPanels().get(1);
