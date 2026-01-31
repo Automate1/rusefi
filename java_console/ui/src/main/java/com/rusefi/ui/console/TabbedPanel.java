@@ -18,7 +18,6 @@ public class TabbedPanel {
 
 //    public final SettingsTab settingsTab;
     public final LogDownloader logsManager;
-    public final PaneSettings paneSettings = new PaneSettings(getConfig().getRoot().getChild("panes"));
 
     public final JTabbedPane tabbedPane = new JTabbedPane() {
         @Override
@@ -32,19 +31,20 @@ public class TabbedPanel {
             g.setFont(new Font(f.getName(), f.getStyle(), f.getSize() * 4));
             Dimension d = getSize();
             String text;
-            switch (ConnectionStatusLogic.INSTANCE.getValue()) {
-                case NOT_CONNECTED:
-                    text = "Not connected";
-                    break;
-                case LOADING:
-                    text = "Loading";
-                    break;
-                default:
-                    text = "";
-            }
             if (criticalError != null) {
                 text = criticalError;
                 g.setColor(Color.red);
+            } else {
+                switch (ConnectionStatusLogic.INSTANCE.getValue()) {
+                    case NOT_CONNECTED:
+                        text = "Not connected";
+                        break;
+                    case LOADING:
+                        text = "Loading";
+                        break;
+                    default:
+                        text = "";
+                }
             }
             int labelWidth = g.getFontMetrics().stringWidth(text);
             g.drawString(text, (d.width - labelWidth) / 2, d.height / 2);
