@@ -12,21 +12,24 @@ jobs:
           ref: ${{ github.ref }} # This ensures it checks out the branch you picked in the UI
           fetch-depth: 0 
 
-      - name: Clean and Branch
+      - name: Reset Workflows to Upstream
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
-          # Create the PR branch name based on the current branch
-          NEW_BRANCH="${GITHUB_REF_NAME}-for-PR"
+          # 1. Add the official rusefi repo as a source
+          git remote add upstream https://github.com
+          git fetch upstream master
           
-          # Switch to new branch
+          # 2. Create the clean PR branch
+          NEW_BRANCH="${GITHUB_REF_NAME}-for-PR"
           git checkout -b "$NEW_BRANCH"
           
-          # Physically remove the workflows directory
-          rm -rf .github/workflows
+          # 3. OVERWRITE your workflows with the upstream version
+          # This ensures the diff is ZERO (no changes, no deletions)
+          git checkout upstream/master -- .github/workflows
           
-          # Commit and push to your fork (origin)
-          git add .
-          git commit -m "Cleanup: remove workflows for PR submission"
+          # 4. Commit and Push
+          git add .github/workflows
+          git commit -m "Reset workflows to match upstream rusefi/master" || echo "Workflows already match"
           git push origin "$NEW_BRANCH" --force
