@@ -76,6 +76,7 @@ CONTROLLERS_SRC_CPP = \
 	$(CONTROLLERS_DIR)/max_limit_with_hysteresis.cpp \
 	$(CONTROLLERS_DIR)/long_term_fuel_trim.cpp \
 	$(CONTROLLERS_DIR)/obd/obd_core.cpp \
+	$(CONTROLLERS_DIR)/obd/elm327_emulate/elm327_emulate.cpp \
 
 CONTROLLERS_INC=\
 	$(CONTROLLERS_DIR) \
@@ -100,4 +101,6 @@ CONTROLLERS_INC=\
 	$(CONTROLLERS_DIR)/actuators/gppwm \
 	$(CONTROLLERS_DIR)/serial \
 	$(CONTROLLERS_DIR)/obd \
+	$(CONTROLLERS_DIR)/obd/elm327_emulate \
+
 
