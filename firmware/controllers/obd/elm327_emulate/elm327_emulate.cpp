@@ -1,8 +1,11 @@
 #include <cstdint>
 
-#include "console_io.h"
 #include "elm327_emulate.h"
 
+// ---- console forward declaration (there is NO header for this)
+extern "C" void consolePrintf(const char* fmt, ...);
+
+// ---- logging helpers
 #define ELM_LOG_PREFIX "[ELM327] "
 #define elmLog(...) consolePrintf(ELM_LOG_PREFIX __VA_ARGS__)
 
