@@ -1,0 +1,32 @@
+name: Prepare PR Branch
+on:
+  workflow_dispatch: # Allows manual selection of branch
+
+jobs:
+  prepare-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout selected branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }} # This ensures it checks out the branch you picked in the UI
+          fetch-depth: 0 
+
+      - name: Clean and Branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Create the PR branch name based on the current branch
+          NEW_BRANCH="${GITHUB_REF_NAME}-for-PR"
+          
+          # Switch to new branch
+          git checkout -b "$NEW_BRANCH"
+          
+          # Physically remove the workflows directory
+          rm -rf .github/workflows
+          
+          # Commit and push to your fork (origin)
+          git add .
+          git commit -m "Cleanup: remove workflows for PR submission"
+          git push origin "$NEW_BRANCH" --force
