@@ -3,7 +3,7 @@
 #include "console_io.h"
 #include "elm327_emulate.h"
 #include "engine_configuration.h"
-#include "uart.h"
+#include "hellen_meta.h"
 
 // Logging prefix + helper
 #define ELM_LOG_PREFIX "[ELM327] "
