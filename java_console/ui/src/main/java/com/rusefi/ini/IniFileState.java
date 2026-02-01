@@ -28,17 +28,22 @@ public class IniFileState {
         this.uiContext = uiContext;
         // todo: do not access file system from AWT thread, start new thread? but that would require smarter sub/notify mechanism for UI
         String localIniFile = PrimeTunerStudioCache.findLocalIniFile();
-        try {
-            iniFileModel = IniFileReaderUtil.readIniFile(localIniFile);
-        } catch (FileNotFoundException e) {
-            log.warn("error " + e);
+        if (localIniFile != null) {
+            try {
+                iniFileModel = IniFileReaderUtil.readIniFile(localIniFile);
+            } catch (FileNotFoundException e) {
+                log.warn("error " + e);
+            }
         }
     }
 
     public IniFileModel getIniFileModel() {
         BinaryProtocol bp = uiContext.getBinaryProtocol();
         if (bp != null) {
-            iniFileModel = bp.getIniFile();
+            // do not lose reference on disconnect
+            IniFileModel current = bp.getIniFileNullable();
+            if (current != null)
+                iniFileModel = current;
         }
         return iniFileModel;
     }
