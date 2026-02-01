@@ -35,12 +35,12 @@ public class DetachedSensor {
     private static final String WIDTH = "width";
 
     private static final Collection<Sensor> MOCKABLE = Arrays.asList(
-            Sensor.COOLANT,
+            Sensor.CLTGauge,
             Sensor.LAMBDAVALUE,
-            Sensor.INTAKE,
+            Sensor.IATGauge,
             Sensor.MAFMEASURED,
-            Sensor.MAPVALUE,
-            Sensor.TPSVALUE);
+            Sensor.MAPGauge,
+            Sensor.TPSGauge);
 
     private final static Hashtable<Integer, JComponent> SLIDER_LABELS = new Hashtable<>();
     public static final String XPOS = "xpos";
@@ -181,7 +181,7 @@ public class DetachedSensor {
     }
 
     public static void create(UIContext uiContext, Node child) {
-        Sensor sensor = Sensor.lookup(child.getProperty(NAME, Sensor.RPMValue.name()), Sensor.RPMValue);
+        Sensor sensor = Sensor.lookup(child.getProperty(NAME, Sensor.RPMGauge.name()), Sensor.RPMGauge);
         int width = child.getIntProperty(WIDTH, 256);
         int xpos = child.getIntProperty(XPOS, 0);
         int ypos = child.getIntProperty(YPOS, 0);

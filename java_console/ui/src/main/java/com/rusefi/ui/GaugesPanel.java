@@ -26,22 +26,16 @@ import java.util.List;
  */
 public class GaugesPanel {
     private static final Sensor[] DEFAULT_LAYOUT = {
-            Sensor.RPMValue,
-            Sensor.MAFMEASURED,
-            Sensor.COOLANT,
-            Sensor.INTAKE,
-            Sensor.TPSVALUE,
+            Sensor.RPMGauge,
+            Sensor.internalMcuTemperatureGauge,
+            Sensor.CLTGauge,
+            Sensor.IATGauge,
+            Sensor.TPSGauge,
 
-            Sensor.MAPVALUE,
-//            Sensor.tCharge,
-//            Sensor.baseFuel,
-//            Sensor.runningFuel,
-
-//            Sensor.etbTarget,
+            Sensor.MAPGauge,
             Sensor.lastErrorCode,
-            Sensor.LAMBDAVALUE,
-            Sensor.VBATT,
-            Sensor.VEHICLESPEEDKPH,
+            Sensor.VBatt,
+            Sensor.vehicleSpeedKph,
 
     };
     private static final String GAUGES_ROWS = "gauges_rows";
@@ -216,7 +210,7 @@ public class GaugesPanel {
         for (int i = 0; i < rows * columns; i++) {
             // sometimes grid is quite large so we shall be careful with default sensor index
             Sensor defaultSensor = DEFAULT_LAYOUT[Math.min(i, DEFAULT_LAYOUT.length - 1)];
-            Component element = GaugesGridElement.read(uiContext, config.getChild("element_" + i), defaultSensor);
+            Component element = GaugesGridElement.create(uiContext, config.getChild("element_" + i), defaultSensor);
 
             gauges.panel.add(element);
         }
