@@ -8,7 +8,8 @@
 
 // Serial device (secondary UART)
 #ifndef ELM327_SERIAL_DEVICE
-#define ELM327_SERIAL_DEVICE SD2
+// #define ELM327_SERIAL_DEVICE SD2
+#define ELM327_SERIAL_DEVICE (&SD2)
 #endif
 
 #ifndef ELM327_SERIAL_DEVICE_RX
@@ -18,9 +19,6 @@
 #ifndef ELM327_SERIAL_DEVICE_TX
 #define ELM327_SERIAL_DEVICE_TX H144_UART2_TX
 #endif
-
-// Thread handle (optional external access)
-extern thread_t *elm327ThreadHandle;
 
 // ---------- Public API ----------
 
@@ -47,4 +45,4 @@ void startElm327Emulate();
  * Handle a single byte received from the UART.
  * Currently just logs the byte to the console.
  */
-void elm327EmulateOnByte(uint8_t byte);
+void elm327EmulateOnByte(uint8_t rxByte);

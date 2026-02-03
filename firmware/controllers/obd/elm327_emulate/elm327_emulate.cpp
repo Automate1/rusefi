@@ -3,6 +3,7 @@
 #include "hellen_meta.h"
 #include <cstdint>
 #include <cstring>
+#include "dbg_printf.h"
 
 // Optional: define logging prefix
 #define ELM_LOG_PREFIX "ELM327: "
@@ -12,24 +13,18 @@ static THD_WORKING_AREA(elmThreadStack, 512);
 static thread_t *elm327ThreadHandle = nullptr;
 
 // Minimal serial config for the secondary UART
-static SerialConfig elmSerialConfig = {
-    .speed = 115200,   // default baud, can later be configurable via TS
-    .cr1 = 0,
-    .cr2 = USART_CR2_STOP1_BITS,
-    .cr3 = 0
-};
+static SerialConfig elmSerialConfig;
+elmSerialConfig.speed = 115200;
 
 // Enabled flag
 static bool elmEnabled = false;
 
 // Logging helper
-static void elmLog(const char *fmt, ...) {
-#if 1
+static void elmLog(const char* fmt, ...) {
     va_list args;
     va_start(args, fmt);
-    chvprintf(fmt, args);
+    dbgVPrintf(fmt, args);
     va_end(args);
-#endif
 }
 
 // ELM327 thread: reads bytes and logs them
@@ -73,8 +68,8 @@ void startElm327Emulate() {
     elmLog(ELM_LOG_PREFIX "ELM327 emulation enabled\r\n");
 
     // Claim pins (mirror K-Line)
-    efiSetPadMode("ELM UART RX", Gpio::ELM327_SERIAL_DEVICE_RX, PAL_MODE_ALTERNATE(TS_SERIAL_AF));
-    efiSetPadMode("ELM UART TX", Gpio::ELM327_SERIAL_DEVICE_TX, PAL_MODE_ALTERNATE(TS_SERIAL_AF));
+    // efiSetPadMode("ELM UART RX", Gpio::ELM327_SERIAL_DEVICE_RX, PAL_MODE_ALTERNATE(TS_SERIAL_AF));
+    // efiSetPadMode("ELM UART TX", Gpio::ELM327_SERIAL_DEVICE_TX, PAL_MODE_ALTERNATE(TS_SERIAL_AF));
 
     // Start UART
     sdStart(ELM327_SERIAL_DEVICE, &elmSerialConfig);
@@ -97,8 +92,7 @@ void stopElm327Emulate() {
         elm327ThreadHandle = nullptr;
     }
 }
-
-void elm327EmulateOnByte(uint8_t byte) {
+void elm327EmulateOnByte(uint8_t rxByte) {
     if (!elmEnabled) return;
     // For now, log incoming byte
     if (byte >= 32 && byte <= 126) {
