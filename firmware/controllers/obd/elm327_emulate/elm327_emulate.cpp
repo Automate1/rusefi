@@ -43,9 +43,9 @@ static THD_FUNCTION(elm327Thread, arg) {
             for (int i = 0; i < bytesRead; i++) {
                 uint8_t b = rxBuf[i];
                 if (b >= 32 && b <= 126) {
-                    elmLog(ELM_LOG_PREFIX "RX '%c' (0x%02X)\r\n", b, b);
+                    elmLog("RX '%c' (0x%02X)\r\n", b, b);
                 } else {
-                    elmLog(ELM_LOG_PREFIX "RX 0x%02X\r\n", b);
+                    elmLog("RX 0x%02X\r\n", b);
                 }
 
                 // For now, just echo back
