@@ -6,7 +6,11 @@
 #include <cstring>
 
 // Optional: define logging prefix
+
+// Logging helper
 #define ELM_LOG_PREFIX "ELM327: "
+#define elmLog(fmt, ...) efiPrintf(ELM_LOG_PREFIX fmt, ##__VA_ARGS__)
+
 
 // Thread stack
 static THD_WORKING_AREA(elmThreadStack, 512);
@@ -25,8 +29,6 @@ static SerialConfig elmSerialConfig = {
 // Enabled flag
 static bool elmEnabled = false;
 
-// Logging helper
-#define elmLog(fmt, ...) consolePrintf(ELM_LOG_PREFIX fmt, ##__VA_ARGS__)
 
 // ELM327 thread: reads bytes and logs them
 static THD_FUNCTION(elm327Thread, arg) {
@@ -91,7 +93,7 @@ void startElm327Emulate() {
 void stopElm327Emulate() {
     if (!elmEnabled) return;
     elmEnabled = false;
-    elmLog(ELM_LOG_PREFIX "ELM327 emulation disabled\r\n");
+    elmLog("ELM327 emulation disabled\r\n");
 
     if (elm327ThreadHandle) {
         chThdTerminate(elm327ThreadHandle);
@@ -102,8 +104,8 @@ void elm327EmulateOnByte(uint8_t rxByte) {
     if (!elmEnabled) return;
     // For now, log incoming byte
     if (byte >= 32 && byte <= 126) {
-        elmLog(ELM_LOG_PREFIX "RX '%c' (0x%02X)\r\n", byte, byte);
+        elmLog("RX '%c' (0x%02X)\r\n", byte, byte);
     } else {
-        elmLog(ELM_LOG_PREFIX "RX 0x%02X\r\n", byte);
+        elmLog("RX 0x%02X\r\n", byte);
     }
 }
