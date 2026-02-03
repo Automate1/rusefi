@@ -1,9 +1,9 @@
 #include "pch.h"
+#include "console_io.h"
 #include "elm327_emulate.h"
 #include "hellen_meta.h"
 #include <cstdint>
 #include <cstring>
-#include "dbg_printf.h"
 
 // Optional: define logging prefix
 #define ELM_LOG_PREFIX "ELM327: "
@@ -13,19 +13,20 @@ static THD_WORKING_AREA(elmThreadStack, 512);
 static thread_t *elm327ThreadHandle = nullptr;
 
 // Minimal serial config for the secondary UART
-static SerialConfig elmSerialConfig;
-elmSerialConfig.speed = 115200;
+static SerialConfig elmSerialConfig = {
+#if EFI_PROD_CODE
+    .speed = 38400,
+    .cr1 = 0,
+    .cr2 = USART_CR2_STOP1_BITS,
+    .cr3 = 0
+#endif
+};
 
 // Enabled flag
 static bool elmEnabled = false;
 
 // Logging helper
-static void elmLog(const char* fmt, ...) {
-    va_list args;
-    va_start(args, fmt);
-    dbgVPrintf(fmt, args);
-    va_end(args);
-}
+#define elmLog(fmt, ...) consolePrintf(ELM_LOG_PREFIX fmt, ##__VA_ARGS__)
 
 // ELM327 thread: reads bytes and logs them
 static THD_FUNCTION(elm327Thread, arg) {
@@ -67,12 +68,15 @@ void startElm327Emulate() {
     elmEnabled = true;
     elmLog(ELM_LOG_PREFIX "ELM327 emulation enabled\r\n");
 
-    // Claim pins (mirror K-Line)
-    // efiSetPadMode("ELM UART RX", Gpio::ELM327_SERIAL_DEVICE_RX, PAL_MODE_ALTERNATE(TS_SERIAL_AF));
-    // efiSetPadMode("ELM UART TX", Gpio::ELM327_SERIAL_DEVICE_TX, PAL_MODE_ALTERNATE(TS_SERIAL_AF));
+    #if EFI_PROD_CODE
+		efiSetPadMode("ELM UART RX", Gpio::ELM327_SERIAL_DEVICE_RX,
+    	PAL_MODE_ALTERNATE(TS_SERIAL_AF));
+		efiSetPadMode("ELM UART TX", Gpio::ELM327_SERIAL_DEVICE_TX,
+    	PAL_MODE_ALTERNATE(TS_SERIAL_AF));
+	#endif
 
     // Start UART
-    sdStart(ELM327_SERIAL_DEVICE, &elmSerialConfig);
+    sdStart(&ELM327_SERIAL_DEVICE, &elmSerialConfig);
 
     // Start thread
     elm327ThreadHandle = chThdCreateStatic(elmThreadStack,
@@ -80,6 +84,8 @@ void startElm327Emulate() {
                                            NORMALPRIO + 1,
                                            elm327Thread,
                                            nullptr);
+
+	elmLog("started on secondary UART\r\n");
 }
 
 void stopElm327Emulate() {
