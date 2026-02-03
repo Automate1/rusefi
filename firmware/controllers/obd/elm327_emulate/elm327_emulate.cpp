@@ -60,7 +60,13 @@ static THD_FUNCTION(elm327Thread, arg) {
 }
 
 // Public API
-void elm327EmulateInit() {
+void initElm327Emulate(){
+	startElm327Emulate();
+}
+
+void startElm327Emulate() {
+
+  
     if (elmEnabled) return;
 
     elmEnabled = true;
@@ -81,7 +87,7 @@ void elm327EmulateInit() {
                                            nullptr);
 }
 
-void elm327EmulateStop() {
+void stopElm327Emulate() {
     if (!elmEnabled) return;
     elmEnabled = false;
     elmLog(ELM_LOG_PREFIX "ELM327 emulation disabled\r\n");

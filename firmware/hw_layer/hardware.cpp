@@ -24,6 +24,7 @@
 #include "idle_thread.h"
 #include "odometer.h"
 #include "kline.h"
+#include "elm327_emulate.h"
 #include "dac.h"
 
 #if EFI_PROD_CODE
@@ -339,6 +340,7 @@ void applyNewHardwareSettings() {
 #endif /* EFI_CAN_SUPPORT */
 
 	stopKLine();
+	stopElm327Emulate();
 
 
 	stopHardware();
@@ -381,6 +383,7 @@ void applyNewHardwareSettings() {
 #endif /* (BOARD_EXT_GPIOCHIPS > 0) */
 
     startKLine();
+	startElm327Emulate();
 
 #if EFI_PROD_CODE && EFI_IDLE_CONTROL
 	if (isIdleHardwareRestartNeeded()) {
@@ -630,6 +633,7 @@ void initHardware() {
 #endif
 
 	initKLine();
+	initElm327Emulate();
 
 #if EFI_DAC
 	initDac();

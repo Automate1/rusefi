@@ -28,13 +28,20 @@ extern thread_t *elm327ThreadHandle;
  * Initialize and start ELM327 emulation.
  * Claims the secondary UART pins and starts the background thread.
  */
-void elm327EmulateInit();
+void initElm327Emulate();
 
 /**
  * Stop ELM327 emulation.
  * Terminates the thread and releases resources.
  */
-void elm327EmulateStop();
+void stopElm327Emulate();
+
+/**
+ * Start ELM327 emulation.
+ * Terminates the thread and releases resources.
+ */
+void startElm327Emulate();
+
 
 /**
  * Handle a single byte received from the UART.
