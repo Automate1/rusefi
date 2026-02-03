@@ -13,8 +13,12 @@
 
 
 // Thread stack
+
 static THD_WORKING_AREA(elmThreadStack, 512);
 static thread_t *elm327ThreadHandle = nullptr;
+static THD_FUNCTION(elm327Thread, arg) {
+    (void)arg;
+}
 
 // Minimal serial config for the secondary UART
 static SerialConfig elmSerialConfig = {
@@ -103,9 +107,9 @@ void stopElm327Emulate() {
 void elm327EmulateOnByte(uint8_t rxByte) {
     if (!elmEnabled) return;
     // For now, log incoming byte
-    if (byte >= 32 && byte <= 126) {
-        elmLog("RX '%c' (0x%02X)\r\n", byte, byte);
+    if (rxByte >= 32 && rxByte <= 126) {
+        elmLog("RX '%c' (0x%02X)\r\n", rxByte, rxByte);
     } else {
-        elmLog("RX 0x%02X\r\n", byte);
+        elmLog("RX 0x%02X\r\n", rxByte);
     }
 }
