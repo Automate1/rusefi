@@ -16,9 +16,6 @@
 
 static THD_WORKING_AREA(elmThreadStack, 512);
 static thread_t *elm327ThreadHandle = nullptr;
-static THD_FUNCTION(elm327Thread, arg) {
-    (void)arg;
-}
 
 // Minimal serial config for the secondary UART
 static SerialConfig elmSerialConfig = {
@@ -68,21 +65,28 @@ void initElm327Emulate(){
 
 void startElm327Emulate() {
 
+	#if EFI_PROD_CODE
   
     if (elmEnabled) return;
 
     elmEnabled = true;
     elmLog(ELM_LOG_PREFIX "ELM327 emulation enabled\r\n");
 
-    #if EFI_PROD_CODE
-		efiSetPadMode("ELM UART RX", Gpio::ELM327_SERIAL_DEVICE_RX,
+    	efiSetPadMode("ELM UART RX", Gpio::ELM327_SERIAL_DEVICE_RX,
     	PAL_MODE_ALTERNATE(TS_SERIAL_AF));
 		efiSetPadMode("ELM UART TX", Gpio::ELM327_SERIAL_DEVICE_TX,
     	PAL_MODE_ALTERNATE(TS_SERIAL_AF));
-	#endif
-
+	
     // Start UART
-    sdStart(&ELM327_SERIAL_DEVICE, &elmSerialConfig);
+    sdStart(ELM327_SERIAL_DEVICE, &elmSerialConfig);
+
+	chThdCreateStatic(
+    elm327ThreadStack,
+    sizeof(elm327ThreadStack),
+    NORMALPRIO + 1,
+    elm327Thread,
+    nullptr
+);
 
     // Start thread
     elm327ThreadHandle = chThdCreateStatic(elmThreadStack,
@@ -92,6 +96,7 @@ void startElm327Emulate() {
                                            nullptr);
 
 	elmLog("started on secondary UART\r\n");
+	#endif
 }
 
 void stopElm327Emulate() {

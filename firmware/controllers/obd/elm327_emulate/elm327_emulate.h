@@ -8,8 +8,8 @@
 
 // Serial device (secondary UART)
 #ifndef ELM327_SERIAL_DEVICE
-#define ELM327_SERIAL_DEVICE SD2
-// #define ELM327_SERIAL_DEVICE (&SD2)
+//#define ELM327_SERIAL_DEVICE SD2
+#define ELM327_SERIAL_DEVICE (&SD2)
 #endif
 
 #ifndef ELM327_SERIAL_DEVICE_RX
