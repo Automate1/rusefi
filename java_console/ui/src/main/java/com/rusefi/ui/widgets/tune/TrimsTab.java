@@ -9,7 +9,6 @@ import com.rusefi.io.UpdateOperationCallbacks;
 import com.rusefi.maintenance.BinaryProtocolExecutor;
 import com.rusefi.maintenance.CalibrationsHelper;
 import com.rusefi.maintenance.CalibrationsInfo;
-import com.rusefi.ui.basic.TuningTableView;
 
 import javax.swing.*;
 import java.awt.*;
@@ -99,8 +98,8 @@ public class TrimsTab {
         // Page 1 contains the axis bins (RPM and load)
         ConfigurationImage page1Image = info.getImage().getConfigurationImage();
 
-        view1.displayTable(info, zBinsBuffer, page1Image, "ltftBank1Tbl");
-        view2.displayTable(info, zBinsBuffer, page1Image, "ltftBank2Tbl");
+        view1.displayTable(info.getIniFile(), "ltftBank1Tbl", new ConfigurationImage(zBinsBuffer), page1Image);
+        view2.displayTable(info.getIniFile(), "ltftBank2Tbl", new ConfigurationImage(zBinsBuffer), page1Image);
     }
 
     public Component getContent() {

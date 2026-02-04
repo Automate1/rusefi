@@ -24,6 +24,7 @@ public class IniFileReader {
                 allIniFields,
                 secondaryIniFields,
                 allOutputChannels,
+                expressionOutputChannels,
                 protocolMeta,
                 getMetaInfo(),
                 getIniFilePath(),
@@ -54,6 +55,7 @@ public class IniFileReader {
     private String dialogId;
     private String dialogUiName;
     private String dialogTopicHelp;
+    private String dialogLayoutHint;
     private final Map<String, DialogModel> dialogs = new TreeMap<>();
     // this is only used while reading model - TODO extract reader
     private final List<DialogModel.Field> fieldsOfCurrentDialog = new ArrayList<>();
@@ -62,6 +64,8 @@ public class IniFileReader {
     private final Map<String, IniField> allIniFields = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
     private final Map<String, IniField> secondaryIniFields = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
     private final Map<String, IniField> allOutputChannels = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    // Expression-based output channels like: coolantTemperature = { useMetricOnInterface ? coolant : (coolant * 1.8 + 32) }
+    private final Map<String, String> expressionOutputChannels = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
     public final Map<String, DialogModel.Field> fieldsInUiOrder = new LinkedHashMap<>();
 
     private final Map</*field name*/String, String> tooltips = new TreeMap<>();
@@ -140,10 +144,11 @@ public class IniFileReader {
         if (dialogUiName == null)
             dialogUiName = dialogId;
         // Store dialogs by their key (dialogId), not by UI name, for easier panel resolution
-        dialogs.put(dialogId, new DialogModel(dialogId, dialogUiName, fieldsOfCurrentDialog, commandsOfCurrentDialog, panelsOfCurrentDialog, dialogTopicHelp));
+        dialogs.put(dialogId, new DialogModel(dialogId, dialogUiName, fieldsOfCurrentDialog, commandsOfCurrentDialog, panelsOfCurrentDialog, dialogTopicHelp, dialogLayoutHint));
 
         dialogId = null;
         dialogTopicHelp = null;
+        dialogLayoutHint = null;
         fieldsOfCurrentDialog.clear();
         commandsOfCurrentDialog.clear();
         panelsOfCurrentDialog.clear();
@@ -300,13 +305,29 @@ public class IniFileReader {
             return;
         String name = list.get(0);
         String channelType = list.get(1);
+
+        // Check if it's an expression channel (starts with { or the second element looks like an expression)
+        if (channelType.startsWith("{") || ExpressionEvaluator.looksLikeExpression(channelType)) {
+            // Expression-based output channel like: coolantTemperature = { useMetricOnInterface ? coolant : ... }
+            // Reconstruct the full expression from the parsed list
+            StringBuilder expr = new StringBuilder();
+            for (int i = 1; i < list.size(); i++) {
+                if (i > 1) expr.append(", ");
+                expr.append(list.get(i));
+            }
+            expressionOutputChannels.put(name, expr.toString().trim());
+            return;
+        }
+
         switch (channelType) {
             case FIELD_TYPE_SCALAR: {
                 FieldType scalarType = FieldType.parseTs(list.get(2));
                 String unit = list.size() > 4 ? list.get(4) : "";
                 int offset = Integer.parseInt(list.get(3));
-                // todo: reuse ScalarIniField#parse but would need changes?
-                allOutputChannels.put(name, new ScalarIniField(name, offset, unit, scalarType, 1, "0", 0));
+                // Output channel format: name = scalar, type, offset, units, multiplier, digits
+                double multiplier = list.size() > 5 ? IniField.parseDouble(list.get(5)) : 1.0;
+                double digits = list.size() > 6 ? IniField.parseDouble(list.get(6)) : 0.0;
+                allOutputChannels.put(name, new ScalarIniField(name, offset, unit, scalarType, multiplier, "0", digits));
             }
         }
     }
@@ -381,6 +402,10 @@ public class IniFileReader {
 
         String key = list.isEmpty() ? null : list.removeFirst();
 
+        if (key == null || uiFieldName.startsWith("!")) {
+            key = uiFieldName;
+        }
+
         registerUiField(key, uiFieldName);
         log.debug("IniFileModel: Field label=[" + uiFieldName + "] : key=[" + key + "]");
     }
@@ -406,10 +431,12 @@ public class IniFileReader {
         String keyword = list.removeFirst();
 //                    trim(list);
         String name = list.isEmpty() ? null : list.removeFirst();
+        String layoutHint = list.isEmpty() ? null : list.removeFirst();
 
         dialogId = keyword;
         dialogUiName = name;
-        log.debug("IniFileModel: Dialog key=" + keyword + ": name=[" + name + "]");
+        dialogLayoutHint = layoutHint;
+        log.debug("IniFileModel: Dialog key=" + keyword + ": name=[" + name + "] layoutHint=[" + layoutHint + "]");
     }
 
     private void handlePanel(LinkedList<String> list) {
