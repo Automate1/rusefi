@@ -16,7 +16,7 @@
 
 // Thread stack
 
-static THD_WORKING_AREA(elmThreadStack, 512);
+static THD_WORKING_AREA(elm327ThreadStack, 512);
 static thread_t *elm327ThreadHandle = nullptr;
 
 // Minimal serial config for the secondary UART
@@ -88,8 +88,8 @@ void startElm327Emulate() {
 );
 
     // Start thread
-    elm327ThreadHandle = chThdCreateStatic(elmThreadStack,
-                                           sizeof(elmThreadStack),
+    elm327ThreadHandle = chThdCreateStatic(elm327ThreadStack,
+                                           sizeof(elm327ThreadStack),
                                            NORMALPRIO + 1,
                                            elm327Thread,
                                            nullptr);
