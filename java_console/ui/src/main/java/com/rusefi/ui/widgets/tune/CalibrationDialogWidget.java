@@ -6,8 +6,10 @@ import com.opensr5.ini.CurveModel;
 import com.opensr5.ini.DialogModel;
 import com.opensr5.ini.IniFileModel;
 import com.opensr5.ini.PanelModel;
+import com.opensr5.ini.TableModel;
 import com.opensr5.ini.field.EnumIniField;
 import com.opensr5.ini.field.IniField;
+import com.rusefi.ui.laf.GradientTitleBorder;
 
 import javax.swing.*;
 import java.util.List;
@@ -23,7 +25,41 @@ public class CalibrationDialogWidget {
     public void update(DialogModel dialogModel, IniFileModel iniFileModel, ConfigurationImage ci) {
         contentPane.removeAll();
         if (dialogModel != null) {
+            String layoutHint = dialogModel.getLayoutHint();
+            if ("xAxis".equalsIgnoreCase(layoutHint)) {
+                contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.X_AXIS));
+            } else {
+                contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
+            }
             fillPanel(contentPane, dialogModel, iniFileModel, ci);
+        }
+        contentPane.revalidate();
+        contentPane.repaint();
+    }
+
+    public void update(String key, IniFileModel iniFileModel, ConfigurationImage ci) {
+        contentPane.removeAll();
+        if (key != null) {
+            DialogModel dialog = iniFileModel.getDialogs().get(key);
+            if (dialog != null) {
+                update(dialog, iniFileModel, ci);
+                return;
+            }
+
+            TableModel table = iniFileModel.getTable(key);
+            if (table != null) {
+                contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
+                TuningTableView tuningTableView = new TuningTableView(table.getTitle());
+                tuningTableView.displayTable(iniFileModel, table.getTableId(), ci);
+                contentPane.add(tuningTableView.getContent());
+            } else {
+                CurveModel curve = iniFileModel.getCurves().get(key);
+                if (curve != null) {
+                    contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
+                    CurveWidget curveWidget = new CurveWidget(curve, iniFileModel, ci);
+                    contentPane.add(curveWidget.getContentPane());
+                }
+            }
         }
         contentPane.revalidate();
         contentPane.repaint();
@@ -67,23 +103,70 @@ public class CalibrationDialogWidget {
             }
         }
 
-        for (PanelModel panel : dialogModel.getPanels()) {
+        for (DialogModel.Command command : dialogModel.getCommandsOfCurrentDialog()) {
+            JButton button = new JButton(command.getUiName());
+            button.addActionListener(e -> {
+                // TODO: implement command execution
+                System.out.println("Executing command: " + command.getCommand());
+            });
+            container.add(button);
+        }
+
+        List<PanelModel> panels = dialogModel.getPanels();
+        JPanel horizontalPanel = null;
+        for (PanelModel panel : panels) {
+            String placement = panel.getPlacement();
+            boolean isHorizontal = "west".equalsIgnoreCase(placement) || "center".equalsIgnoreCase(placement) || "east".equalsIgnoreCase(placement);
+
+            if (isHorizontal) {
+                if (horizontalPanel == null) {
+                    horizontalPanel = new JPanel();
+                    horizontalPanel.setLayout(new BoxLayout(horizontalPanel, BoxLayout.X_AXIS));
+                    container.add(horizontalPanel);
+                }
+            } else {
+                horizontalPanel = null;
+            }
+
+            JPanel targetContainer = isHorizontal ? horizontalPanel : container;
+
             CurveModel curve = iniFileModel.getCurves().get(panel.getPanelName());
             if (curve != null) {
                 CurveWidget curveWidget = new CurveWidget(curve, iniFileModel, ci);
-                container.add(curveWidget.getContentPane());
+                targetContainer.add(curveWidget.getContentPane());
+                continue;
+            }
+
+            TableModel table = iniFileModel.getTable(panel.getPanelName());
+            if (table != null) {
+                TuningTableView tuningTableView = new TuningTableView(table.getTitle());
+                tuningTableView.displayTable(iniFileModel, table.getTableId(), ci);
+                targetContainer.add(tuningTableView.getContent());
                 continue;
             }
 
             JPanel panelWidget = new JPanel();
-            panelWidget.setLayout(new BoxLayout(panelWidget, BoxLayout.Y_AXIS));
-            panelWidget.setBorder(BorderFactory.createTitledBorder(panel.getPanelName()));
-            container.add(panelWidget);
-
             DialogModel subDialog = panel.resolveDialog(iniFileModel);
-            if (subDialog != null) {
-                fillPanel(panelWidget, subDialog, iniFileModel, ci);
+            String subLayoutHint = subDialog != null ? subDialog.getLayoutHint() : null;
+            if ("xAxis".equalsIgnoreCase(subLayoutHint)) {
+                panelWidget.setLayout(new BoxLayout(panelWidget, BoxLayout.X_AXIS));
+            } else {
+                panelWidget.setLayout(new BoxLayout(panelWidget, BoxLayout.Y_AXIS));
             }
+
+            if (subDialog != null) {
+                String uiName = subDialog.getUiName();
+                if (uiName == null || uiName.isEmpty()) {
+                    uiName = subDialog.getKey();
+                }
+                panelWidget.setName(uiName);
+                GradientTitleBorder.installBorder(uiName, panelWidget);
+                fillPanel(panelWidget, subDialog, iniFileModel, ci);
+            } else {
+                panelWidget.setName(panel.getPanelName());
+                GradientTitleBorder.installBorder(panel.getPanelName(), panelWidget);
+            }
+            targetContainer.add(panelWidget);
         }
     }
 

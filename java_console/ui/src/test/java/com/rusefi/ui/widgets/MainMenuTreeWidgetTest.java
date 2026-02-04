@@ -240,8 +240,9 @@ public class MainMenuTreeWidgetTest {
         assertTrue(searchField.getText().isEmpty(), "Search field should be empty after click");
         assertEquals(model.getMenus().size(), ((DefaultMutableTreeNode) tree.getModel().getRoot()).getChildCount(), "Tree should be fully restored");
 
-        // Verify that all nodes are expanded
-        assertTrue(tree.isExpanded(new TreePath(setupNode.getPath())), "Setup node should be expanded");
+        // Verify that all nodes are expanded (get nodes from current model, not the old filtered model)
+        DefaultMutableTreeNode currentSetupNode = findNode((DefaultMutableTreeNode) tree.getModel().getRoot(), "Setup");
+        assertTrue(tree.isExpanded(new TreePath(currentSetupNode.getPath())), "Setup node should be expanded");
         // Also check some other node to be sure
         DefaultMutableTreeNode fuelNode = findNode((DefaultMutableTreeNode) tree.getModel().getRoot(), "Fuel");
         assertTrue(tree.isExpanded(new TreePath(fuelNode.getPath())), "Fuel node should be expanded");
@@ -290,7 +291,7 @@ public class MainMenuTreeWidgetTest {
         AtomicReference<SubMenuModel> selectedSubMenu = new AtomicReference<>();
         left.setOnSelect(subMenu -> {
             selectedSubMenu.set(subMenu);
-            right.update(model.getDialogs().get(subMenu.getKey()), model, null);
+            right.update(subMenu.getKey(), model, null);
         });
 
         JTree tree = (JTree) ((JScrollPane) left.getContentPane().getComponent(1)).getViewport().getView();
@@ -423,6 +424,8 @@ public class MainMenuTreeWidgetTest {
             @Override public com.opensr5.ini.field.IniField getIniField(com.rusefi.config.Field field) { return null; }
             @Override public com.opensr5.ini.field.IniField getIniField(String key) { return null; }
             @Override public com.opensr5.ini.field.IniField getOutputChannel(String key) { return null; }
+            @Override public String getExpressionOutputChannel(String key) { return null; }
+            @Override public Map<String, String> getExpressionOutputChannels() { return java.util.Collections.emptyMap(); }
             @Override public Map<String, String> getProtocolMeta() { return null; }
             @Override public com.opensr5.ini.IniFileMetaInfo getMetaInfo() { return null; }
             @Override public String getIniFilePath() { return null; }
@@ -434,6 +437,7 @@ public class MainMenuTreeWidgetTest {
             @Override public Map<String, com.opensr5.ini.GaugeCategoryModel> getGaugeCategories() { return null; }
             @Override public Map<String, com.opensr5.ini.GaugeModel> getGauges() { return null; }
             @Override public com.opensr5.ini.GaugeModel getGauge(String name) { return null; }
+            @Override public com.opensr5.ini.GaugeModel findGaugeByChannel(String channelName) { return null; }
             @Override public Map<String, String> getTopicHelp() { return null; }
             @Override public Map<String, com.opensr5.ini.ContextHelpModel> getContextHelp() { return null; }
             @Override public com.opensr5.ini.ContextHelpModel getContextHelp(String referenceName) { return null; }

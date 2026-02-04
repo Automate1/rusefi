@@ -1,4 +1,4 @@
-package com.rusefi.ui.basic;
+package com.rusefi.ui.widgets.tune;
 
 import com.opensr5.ConfigurationImage;
 import com.opensr5.ConfigurationImageGetterSetter;
@@ -16,6 +16,9 @@ import java.util.Optional;
 
 public class TuningTableView {
     private final JTable table = new JTable();
+    private final Surface3DView surface3DView = new Surface3DView();
+    private final CardLayout cardLayout = new CardLayout();
+    private final JPanel tableContainer = new JPanel(cardLayout);
     private final JPanel content = new JPanel();
     private final String title;
     private double minValue = Double.MAX_VALUE;
@@ -26,19 +29,27 @@ public class TuningTableView {
         table.getTableHeader().setReorderingAllowed(false);
         table.setDefaultRenderer(Object.class, new GradientRenderer());
 
+        tableContainer.add(new JScrollPane(table), "table");
+        tableContainer.add(surface3DView, "3d");
+
+        JCheckBox view3d = new JCheckBox("3D view");
+        view3d.addActionListener(e -> {
+            cardLayout.show(tableContainer, view3d.isSelected() ? "3d" : "table");
+        });
+
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
         content.add(new JLabel(title));
-        content.add(table.getTableHeader());
-        content.add(table);
+        content.add(view3d);
+        content.add(tableContainer);
     }
 
-    public void displayTable(CalibrationsInfo info, byte[] zBinsBuffer, ConfigurationImage page1Image, String tableName) {
-        TableModel iniTable = info.getIniFile().getTable(tableName);
+    public void displayTable(IniFileModel iniFile, String tableName, ConfigurationImage zImage, ConfigurationImage axisImage) {
+        TableModel iniTable = iniFile.getTable(tableName);
         if (iniTable == null) {
             return;
         }
 
-        Optional<IniField> zBinsField = info.getIniFile().findIniField(iniTable.getZBinsConstant());
+        Optional<IniField> zBinsField = iniFile.findIniField(iniTable.getZBinsConstant());
         if (!zBinsField.isPresent() || !(zBinsField.get() instanceof ArrayIniField)) {
             return;
         }
@@ -46,16 +57,25 @@ public class TuningTableView {
         ArrayIniField ltft = (ArrayIniField) zBinsField.get();
 
         // Extract data from outputs buffer using the field's offset
-        ConfigurationImage outputsImage = new ConfigurationImage(zBinsBuffer);
-        Double[][] dataValues = ConfigurationImageGetterSetter.getArrayValues(ltft, outputsImage);
+        Double[][] dataValues = ConfigurationImageGetterSetter.getArrayValues(ltft, zImage);
 
         // X and Y bins (RPM and load) are on page 1
-        String[] xBins = extractAxisBins(info.getIniFile(), iniTable.getXBinsConstant(), page1Image);
-        String[] yBins = extractAxisBins(info.getIniFile(), iniTable.getYBinsConstant(), page1Image);
+        Double[] xBins = extractAxisBins(iniFile, iniTable.getXBinsConstant(), axisImage);
+        Double[] yBins = extractAxisBins(iniFile, iniTable.getYBinsConstant(), axisImage);
 
         calculateMinMax(dataValues);
 
         table.setModel(new TuningTableModel(dataValues, xBins, yBins));
+        surface3DView.setData(dataValues, xBins, yBins, minValue, maxValue);
+    }
+
+    public void displayTable(IniFileModel iniFile, String tableName, ConfigurationImage image) {
+        displayTable(iniFile, tableName, image, image);
+    }
+
+    @Deprecated
+    public void displayTable(CalibrationsInfo info, byte[] zBinsBuffer, ConfigurationImage image, String tableName) {
+        displayTable(info.getIniFile(), tableName, new ConfigurationImage(zBinsBuffer), image);
     }
 
     private void calculateMinMax(Double[][] dataValues) {
@@ -73,7 +93,7 @@ public class TuningTableView {
         this.maxValue = max;
     }
 
-    private String[] extractAxisBins(IniFileModel iniFile,
+    private Double[] extractAxisBins(IniFileModel iniFile,
                                      String binConstant,
                                      ConfigurationImage image) {
         Optional<IniField> binsField = iniFile.findIniField(binConstant);
@@ -82,7 +102,7 @@ public class TuningTableView {
         }
 
         ArrayIniField field = (ArrayIniField) binsField.get();
-        String[][] values = field.getValues(ConfigurationImageGetterSetter.getStringValue(field, image));
+        Double[][] values = ConfigurationImageGetterSetter.getArrayValues(field, image);
 
         if (values.length == 0 || values[0].length == 0) {
             return null;
@@ -93,8 +113,8 @@ public class TuningTableView {
                         values[0];
     }
 
-    private String[] extractColumn(String[][] values) {
-        String[] column = new String[values.length];
+    private Double[] extractColumn(Double[][] values) {
+        Double[] column = new Double[values.length];
         for (int i = 0; i < values.length; i++) {
             column[i] = values[i][0];
         }
@@ -107,10 +127,10 @@ public class TuningTableView {
 
     private static class TuningTableModel extends AbstractTableModel {
         private final Double[][] data;
-        private final String[] xBins;
-        private final String[] yBins;
+        private final Double[] xBins;
+        private final Double[] yBins;
 
-        public TuningTableModel(Double[][] data, String[] xBins, String[] yBins) {
+        public TuningTableModel(Double[][] data, Double[] xBins, Double[] yBins) {
             this.data = data;
             this.xBins = xBins;
             this.yBins = yBins;
@@ -174,10 +194,13 @@ public class TuningTableView {
             }
 
             if (value instanceof String) {
-                try {
-                    double val = Double.parseDouble((String) value);
-                    applyGradient(c, val);
-                } catch (NumberFormatException ignored) {
+                String strValue = (String) value;
+                if (!strValue.isEmpty()) {
+                    try {
+                        double val = Double.parseDouble(strValue);
+                        applyGradient(c, val);
+                    } catch (NumberFormatException ignored) {
+                    }
                 }
             }
             return c;
