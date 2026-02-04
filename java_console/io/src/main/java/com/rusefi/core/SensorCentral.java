@@ -1,11 +1,13 @@
 package com.rusefi.core;
 
+import com.opensr5.ConfigurationImage;
 import com.opensr5.ini.IniFileModel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -20,7 +22,8 @@ public class SensorCentral implements ISensorCentral {
 
     private final SensorsHolder sensorsHolder = new SensorsHolder();
 
-    private final Map<String, List<SensorListener>> sensorListeners = new HashMap<>();
+    // ini uses "coolant" but Sensor enum uses "COOLANT"
+    private final Map<String, List<SensorListener>> sensorListeners = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
     private final List<ResponseListener> listeners = new CopyOnWriteArrayList<>();
     private byte[] response;
 
@@ -32,9 +35,9 @@ public class SensorCentral implements ISensorCentral {
     }
 
     @Override
-    public void grabSensorValues(byte[] response, @NotNull IniFileModel ini) {
+    public void grabSensorValues(byte[] response, @NotNull IniFileModel ini, @Nullable ConfigurationImage configImage) {
         this.response = response;
-        ISensorCentral.super.grabSensorValues(response, ini);
+        ISensorCentral.super.grabSensorValues(response, ini, configImage);
         for (ResponseListener listener : listeners)
             listener.onSensorUpdate();
     }
@@ -45,7 +48,7 @@ public class SensorCentral implements ISensorCentral {
 
     @Override
     public double getValue(Sensor sensor) {
-        return getValue(sensor.name());
+        return getValue(sensor.getNativeName());
     }
 
     @Override
@@ -55,7 +58,7 @@ public class SensorCentral implements ISensorCentral {
 
     @Override
     public boolean setValue(double value, final Sensor sensor) {
-        return setValue(value, sensor.name());
+        return setValue(value, sensor.getNativeName());
     }
 
     @Override
@@ -79,7 +82,7 @@ public class SensorCentral implements ISensorCentral {
 
     @Override
     public ListenerToken addListener(Sensor sensor, SensorListener listener) {
-        return addListener(sensor.name(), listener);
+        return addListener(sensor.getNativeName(), listener);
     }
 
     @Override
