@@ -1,5 +1,7 @@
 #pragma once
 
+#if EFI_PROD_CODE
+
 #include <cstdint>
 #include "ch.h"
 #include "hal.h"
@@ -46,3 +48,5 @@ void startElm327Emulate();
  * Currently just logs the byte to the console.
  */
 void elm327EmulateOnByte(uint8_t rxByte);
+
+#endif
