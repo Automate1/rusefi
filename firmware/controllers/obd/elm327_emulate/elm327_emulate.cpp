@@ -1,3 +1,5 @@
+#if EFI_PROD_CODE
+
 #include "pch.h"
 #include "console_io.h"
 #include "elm327_emulate.h"
@@ -19,12 +21,10 @@ static thread_t *elm327ThreadHandle = nullptr;
 
 // Minimal serial config for the secondary UART
 static SerialConfig elmSerialConfig = {
-#if EFI_PROD_CODE
     .speed = 38400,
     .cr1 = 0,
     .cr2 = USART_CR2_STOP1_BITS,
     .cr3 = 0
-#endif
 };
 
 // Enabled flag
@@ -65,7 +65,6 @@ void initElm327Emulate(){
 
 void startElm327Emulate() {
 
-	#if EFI_PROD_CODE
   
     if (elmEnabled) return;
 
@@ -96,7 +95,6 @@ void startElm327Emulate() {
                                            nullptr);
 
 	elmLog("started on secondary UART\r\n");
-	#endif
 }
 
 void stopElm327Emulate() {
@@ -118,3 +116,5 @@ void elm327EmulateOnByte(uint8_t rxByte) {
         elmLog("RX 0x%02X\r\n", rxByte);
     }
 }
+
+#endif
