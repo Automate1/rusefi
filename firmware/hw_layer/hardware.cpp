@@ -340,7 +340,10 @@ void applyNewHardwareSettings() {
 #endif /* EFI_CAN_SUPPORT */
 
 	stopKLine();
+
+#if EFI_PROD_CODE
 	stopElm327Emulate();
+#endif	//EFI_PROD_CODE
 
 
 	stopHardware();
@@ -383,7 +386,10 @@ void applyNewHardwareSettings() {
 #endif /* (BOARD_EXT_GPIOCHIPS > 0) */
 
     startKLine();
+
+#if EFI_PROD_COD
 	startElm327Emulate();
+#endif  // EFI_PROD_COD
 
 #if EFI_PROD_CODE && EFI_IDLE_CONTROL
 	if (isIdleHardwareRestartNeeded()) {
@@ -633,7 +639,10 @@ void initHardware() {
 #endif
 
 	initKLine();
+
+#if EFI_PROD_CODE
 	initElm327Emulate();
+#endif // EFI_PROD_CODE
 
 #if EFI_DAC
 	initDac();
