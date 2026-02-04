@@ -387,7 +387,7 @@ void applyNewHardwareSettings() {
 
     startKLine();
 
-#if EFI_PROD_COD
+#if EFI_PROD_CODE
 	startElm327Emulate();
 #endif  // EFI_PROD_COD
 
