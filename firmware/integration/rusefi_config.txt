@@ -2192,6 +2192,7 @@ uint8_t[ETB2_TRIM_RPM_SIZE] autoscale throttle2TrimRpmBins;;"RPM", @@RPM_AS_BYTE
 #define ts_show_trigger_console true
 #define ts_show_sparkHardwareLatencyCorrection true
 #define ts_show_ignitionMode true
+#define ts_show_wbo_can_menu true
 
 uint8_t[KNOCK_TABLE_SIZE x KNOCK_TABLE_RPM_SIZE] autoscale maxKnockRetardTable;;"deg", 0.25, 0, 0, 30, 2
 uint8_t[KNOCK_TABLE_SIZE] maxKnockRetardLoadBins;;"%", 1, 0, 0, 250, 0
@@ -2765,6 +2766,7 @@ end_struct
 
 #define MAIN_PAGE_GAUGES_FILE "tunerstudio/main_page_gauges.ini"
 #define GAUGES_DECLARATIONS_FILE "tunerstudio/gauge_declarations.ini"
+#define SECONDARY_PANELS_FILE "tunerstudio/secondary_panels.ini"
 #define TOP_LEVEL_MENU_FILE "tunerstudio/top_level_menu.ini"
 
 #define poke false
