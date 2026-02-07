@@ -6,25 +6,27 @@ on:
 jobs:
   copy-branch:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      workflows: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          # This automatically checks out the branch you picked in the UI
           ref: ${{ github.ref }}
           fetch-depth: 0
-        
+          token: ${{ secrets.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}}
+          # Important: Prevents Git from defaulting back to the GITHUB_TOKEN
+          persist-credentials: false
+
       - name: Create and Push Copy Branch
         run: |
-          # Uses the name of the branch you selected in the dropdown
-          SELECTED_BRANCH="${{ github.ref_name }}"
-          NEW_BRANCH="${SELECTED_BRANCH}_for_PR"
+          NEW_BRANCH="${{ github.ref_name }}_for_PR"
           
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
           git checkout -b "$NEW_BRANCH"
+          
+          # Force the use of the PAT in the push URL
+          git push https://x-access-token:${{ secrets.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 }}@://
+
+  
           git push origin "$NEW_BRANCH"
