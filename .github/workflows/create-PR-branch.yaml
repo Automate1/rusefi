@@ -7,7 +7,7 @@ on:
         description: 'Select the branch to copy'
         required: true
         type: string
-        default: 'master'
+        default: 'main'
 
 jobs:
   copy-branch:
@@ -16,20 +16,15 @@ jobs:
       contents: write
     steps:
       - name: Checkout code
-        uses: [actions/checkout@v4](https://github.com)
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.source_branch }}
           fetch-depth: 0
 
       - name: Create and Push Copy Branch
         run: |
-          # Define the new branch name with suffix
           NEW_BRANCH="${{ github.event.inputs.source_branch }}_for_PR"
-          
-          # Configure Git
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          
-          # Create and push the new branch
           git checkout -b "$NEW_BRANCH"
           git push origin "$NEW_BRANCH"
