@@ -1,0 +1,35 @@
+name: Prepare PR Branch
+
+on:
+  workflow_dispatch:
+
+jobs:
+  copy-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Create and Push Copy Branch
+        env:
+          PAT: ${{ secrets.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 }}
+        run: |
+          NEW_BRANCH="${{ github.ref_name }}_for_PR"
+          
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # 1. KILL the internal GitHub App authorization header
+          git config --local --unset-all 'http.https://github.com' || true
+          
+          # 2. Re-point the remote using the PAT for authentication
+          git remote set-url origin "https://x-access-token:${PAT}@://github.com{{ github.repository }}.git"
+          
+          # 3. Create and push
+          git checkout -b "$NEW_BRANCH"
+          git push origin "$NEW_BRANCH"
+
