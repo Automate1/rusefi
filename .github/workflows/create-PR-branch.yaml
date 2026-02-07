@@ -3,7 +3,6 @@ name: Prepare PR Branch
 on:
   workflow_dispatch:
 
-          
 jobs:
   copy-branch:
     runs-on: ubuntu-latest
@@ -13,7 +12,7 @@ jobs:
         with:
           ref: ${{ github.ref }}
           fetch-depth: 0
-          token: ${{ secrets.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 }}
+          # We don't even need the token here; we will use it for the push
           persist-credentials: false
 
       - name: Create and Push Copy Branch
@@ -25,10 +24,12 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
-          # Remove any existing authorization headers that might be cached
-          git config --unset-all http.https://github.com || true
+          # 1. Remove the default 'origin' created by the checkout action
+          git remote remove origin
           
+          # 2. Add 'origin' back using ONLY your PAT for authentication
+          git remote add origin "https://x-access-token:${PAT}@://github.com{{ github.repository }}.git"
+          
+          # 3. Create the branch and push
           git checkout -b "$NEW_BRANCH"
-          
-          # Push using the PAT as the "username" in the URL
-          git push "https://$PAT@://github.com{{ github.repository }}.git" "$NEW_BRANCH"
+          git push origin "$NEW_BRANCH"
