@@ -3,8 +3,6 @@ name: Prepare PR Branch
 on:
   workflow_dispatch:
 
-          PAT: ${{ secrets.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 }}
-
 jobs:
   copy-branch:
     runs-on: ubuntu-latest
@@ -34,3 +32,4 @@ jobs:
           # 3. Create and push
           git checkout -b "$NEW_BRANCH"
           git push origin "$NEW_BRANCH"
+
