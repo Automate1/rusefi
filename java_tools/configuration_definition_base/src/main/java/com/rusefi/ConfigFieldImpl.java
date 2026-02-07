@@ -111,18 +111,27 @@ public class ConfigFieldImpl implements ConfigField {
             String[] tokens = getTokens();
             if (tokens.length > 1) {
                 String scale = tokens[1].trim();
-                Double scaleDouble;
-                try {
-                    scaleDouble = Double.parseDouble(scale);
-                } catch (NumberFormatException ignore) {
-                    scaleDouble = -1.0;
-                }
-                if (!hasAutoscale && scaleDouble != 1) {
-                    throw new IllegalStateException("Unexpected scale of " + scale + " without autoscale on " + this);
+                if (!isExpression(scale)) {
+                   validateAutoScale(scale, hasAutoscale);
+                } else {
+                    String parsedScale = extractTrueBranch(scale);
+                    validateAutoScale(parsedScale, hasAutoscale);
                 }
             }
         }
         validateRange();
+    }
+
+    private void validateAutoScale(String scale, Boolean hasAutoscale) {
+        Double scaleDouble;
+        try {
+            scaleDouble = Double.parseDouble(scale);
+        } catch (NumberFormatException ignore) {
+            scaleDouble = -1.0;
+        }
+        if (!hasAutoscale && scaleDouble != 1) {
+            throw new IllegalStateException("Unexpected scale of " + scale + " without autoscale on " + this);
+        }
     }
 
     private void validateRange() {
@@ -459,9 +468,14 @@ public class ConfigFieldImpl implements ConfigField {
             }
             // Handle just basic division, not a full fledged eval loop
             String[] parts = innerExpression.split("/");
-            if (parts.length != 2)
-                throw new IllegalArgumentException(name + ": Two parts of division expected in " + innerExpression);
-            factor = Double.parseDouble(parts[0]) / Double.parseDouble(parts[1]);
+            if (parts.length == 1) {
+                // Simple number wrapped in braces (e.g., from extracting true branch of ternary)
+                factor = Double.parseDouble(parts[0]);
+            } else if (parts.length == 2) {
+                factor = Double.parseDouble(parts[0]) / Double.parseDouble(parts[1]);
+            } else {
+                throw new IllegalArgumentException(name + ": Expected simple number or division in " + innerExpression);
+            }
         } else {
             factor = Double.parseDouble(scale);
         }
