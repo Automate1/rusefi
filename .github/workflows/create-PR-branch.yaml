@@ -1,35 +1,35 @@
 name: Prepare PR Branch
+
 on:
-  workflow_dispatch: # Allows manual selection of branch
+  workflow_dispatch:
+    inputs:
+      source_branch:
+        description: 'Select the branch to copy'
+        required: true
+        type: string
+        default: 'main'
 
 jobs:
-  prepare-branch:
+  copy-branch:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - name: Checkout selected branch
-        uses: actions/checkout@v4
+      - name: Checkout code
+        uses: [actions/checkout@v4](https://github.com)
         with:
-          ref: ${{ github.ref }} # This ensures it checks out the branch you picked in the UI
-          fetch-depth: 0 
+          ref: ${{ github.event.inputs.source_branch }}
+          fetch-depth: 0
 
-      - name: Reset Workflows to Upstream
+      - name: Create and Push Copy Branch
         run: |
+          # Define the new branch name with suffix
+          NEW_BRANCH="${{ github.event.inputs.source_branch }}_for_PR"
+          
+          # Configure Git
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
-          # 1. Add the official rusefi repo as a source
-          git remote add upstream https://github.com/rusefi/rusefi
-          git fetch upstream master
-          
-          # 2. Create the clean PR branch
-          NEW_BRANCH="${GITHUB_REF_NAME}-for-PR"
+          # Create and push the new branch
           git checkout -b "$NEW_BRANCH"
-          
-          # 3. OVERWRITE your workflows with the upstream version
-          # This ensures the diff is ZERO (no changes, no deletions)
-          git checkout upstream/master -- .github/workflows
-          
-          # 4. Commit and Push
-          git add .github/workflows
-          git commit -m "Reset workflows to match upstream rusefi/master" || echo "Workflows already match"
-          git push origin "$NEW_BRANCH" --force
+          git push origin "$NEW_BRANCH"
