@@ -12,8 +12,8 @@ on:
 jobs:
   copy-branch:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    # permissions:
+    #   contents: write
     steps:
       - name: Checkout code
         uses: [actions/checkout@v4](https://github.com)
