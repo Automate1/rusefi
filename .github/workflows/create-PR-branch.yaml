@@ -2,12 +2,6 @@ name: Prepare PR Branch
 
 on:
   workflow_dispatch:
-    inputs:
-      source_branch:
-        description: 'Select the branch to copy'
-        required: true
-        type: string
-        default: 'main'
 
 jobs:
   copy-branch:
@@ -19,13 +13,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.source_branch }}
+          # This automatically checks out the branch you picked in the UI
+          ref: ${{ github.ref }}
           fetch-depth: 0
-
+        
       - name: Create and Push Copy Branch
         run: |
-          NEW_BRANCH="${{ github.event.inputs.source_branch }}_for_PR"
+          # Uses the name of the branch you selected in the dropdown
+          SELECTED_BRANCH="${{ github.ref_name }}"
+          NEW_BRANCH="${SELECTED_BRANCH}_for_PR"
+          
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          
           git checkout -b "$NEW_BRANCH"
           git push origin "$NEW_BRANCH"
