@@ -6,12 +6,15 @@ import com.opensr5.ini.IniFileModel;
 import com.opensr5.ini.TableModel;
 import com.opensr5.ini.field.ArrayIniField;
 import com.opensr5.ini.field.IniField;
+import com.rusefi.config.StringFormatter;
 import com.rusefi.maintenance.CalibrationsInfo;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Optional;
 
 public class TuningTableView {
@@ -27,7 +30,31 @@ public class TuningTableView {
     public TuningTableView(String title) {
         this.title = title;
         table.getTableHeader().setReorderingAllowed(false);
+        table.setSelectionBackground(Color.ORANGE);
         table.setDefaultRenderer(Object.class, new GradientRenderer());
+        table.setCellSelectionEnabled(true);
+        table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+
+        table.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                int row = table.rowAtPoint(e.getPoint());
+                int col = table.columnAtPoint(e.getPoint());
+                if (row != -1 && col != -1) {
+                    if (table.isCellSelected(row, col)) {
+                        // If cell is already selected, we want to keep selection as is
+                        // Standard JTable would clear other selections on click.
+                        // However, we must be careful not to break standard selection (Shift/Ctrl)
+                        if (!e.isControlDown() && !e.isShiftDown()) {
+                            // If we click an already selected cell without modifiers,
+                            // we usually expect it to become the ONLY selected cell in standard JTable.
+                            // But the user said "keep selection selected until click on a cell outside of selection"
+                            e.consume();
+                        }
+                    }
+                }
+            }
+        });
 
         tableContainer.add(new JScrollPane(table), "table");
         tableContainer.add(surface3DView, "3d");
@@ -37,10 +64,124 @@ public class TuningTableView {
             cardLayout.show(tableContainer, view3d.isSelected() ? "3d" : "table");
         });
 
+        JTextField deltaField = new JTextField("0.5", 5);
+        deltaField.setMaximumSize(new Dimension(100, 30));
+        JButton upButton = new JButton("Up");
+        JButton downButton = new JButton("Down");
+        JButton equalsButton = new JButton("=");
+
+        upButton.addActionListener(e -> applyDelta(deltaField, 1));
+        downButton.addActionListener(e -> applyDelta(deltaField, -1));
+        equalsButton.addActionListener(e -> showSetDialog());
+
+        JPanel topPanel = new JPanel();
+        topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.X_AXIS));
+        topPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        topPanel.add(new JLabel(title));
+        topPanel.add(Box.createHorizontalStrut(10));
+        topPanel.add(view3d);
+        topPanel.add(Box.createHorizontalStrut(10));
+        topPanel.add(new JLabel("delta:"));
+        topPanel.add(deltaField);
+        topPanel.add(upButton);
+        topPanel.add(downButton);
+        topPanel.add(equalsButton);
+
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
-        content.add(new JLabel(title));
-        content.add(view3d);
+        content.add(topPanel);
         content.add(tableContainer);
+    }
+
+    protected int showConfirmDialog(JPanel panel) {
+        return JOptionPane.showConfirmDialog(table, panel, "Set Value", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+    }
+
+    private void showSetDialog() {
+        int[] selectedRows = table.getSelectedRows();
+        int[] selectedCols = table.getSelectedColumns();
+
+        if (selectedRows.length == 0 || selectedCols.length == 0) {
+            return;
+        }
+
+        JTextField valueField = new JTextField("70", 10);
+        JPanel panel = new JPanel(new GridLayout(0, 1));
+        panel.add(new JLabel("Value:"));
+        panel.add(valueField);
+
+        int result = showConfirmDialog(panel);
+        if (result == JOptionPane.OK_OPTION) {
+            try {
+                double value = Double.parseDouble(valueField.getText());
+                setValue(value, selectedRows, selectedCols);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+    }
+
+    protected void setValue(double value, int[] selectedRows, int[] selectedCols) {
+        TuningTableModel model = (TuningTableModel) table.getModel();
+
+        for (int row : selectedRows) {
+            for (int col : selectedCols) {
+                if (col == 0) continue; // Skip axis column
+                int reversedRowIndex = model.data.length - 1 - row;
+                model.data[reversedRowIndex][col - 1] = value;
+            }
+        }
+        calculateMinMax(model.data);
+        model.fireTableDataChanged();
+
+        // Restore selection
+        table.clearSelection();
+        for (int row : selectedRows) {
+            table.addRowSelectionInterval(row, row);
+        }
+        for (int col : selectedCols) {
+            table.addColumnSelectionInterval(col, col);
+        }
+
+        surface3DView.setData(model.data, model.xBins, model.yBins, minValue, maxValue);
+    }
+
+    private void applyDelta(JTextField deltaField, int sign) {
+        try {
+            double delta = Double.parseDouble(deltaField.getText()) * sign;
+            TuningTableModel model = (TuningTableModel) table.getModel();
+            int[] selectedRows = table.getSelectedRows();
+            int[] selectedCols = table.getSelectedColumns();
+
+            if (selectedRows.length == 0 || selectedCols.length == 0) {
+                return;
+            }
+
+            for (int row : selectedRows) {
+                for (int col : selectedCols) {
+                    if (col == 0) continue; // Skip axis column
+                    int reversedRowIndex = model.data.length - 1 - row;
+                    model.data[reversedRowIndex][col - 1] += delta;
+                }
+            }
+            calculateMinMax(model.data);
+
+            // Save selection
+            ListSelectionModel rowSel = table.getSelectionModel();
+            ListSelectionModel colSel = table.getColumnModel().getSelectionModel();
+
+            model.fireTableDataChanged();
+
+            // Restore selection
+            table.clearSelection();
+            for (int row : selectedRows) {
+                table.addRowSelectionInterval(row, row);
+            }
+            for (int col : selectedCols) {
+                table.addColumnSelectionInterval(col, col);
+            }
+
+            surface3DView.setData(model.data, model.xBins, model.yBins, minValue, maxValue);
+        } catch (NumberFormatException ignored) {
+        }
     }
 
     public void displayTable(IniFileModel iniFile, String tableName, ConfigurationImage zImage, ConfigurationImage axisImage) {
@@ -55,6 +196,7 @@ public class TuningTableView {
         }
 
         ArrayIniField ltft = (ArrayIniField) zBinsField.get();
+        int precision = IniField.parseDigits(ltft.getDigits());
 
         // Extract data from outputs buffer using the field's offset
         Double[][] dataValues = ConfigurationImageGetterSetter.getArrayValues(ltft, zImage);
@@ -65,7 +207,8 @@ public class TuningTableView {
 
         calculateMinMax(dataValues);
 
-        table.setModel(new TuningTableModel(dataValues, xBins, yBins));
+        table.setModel(new TuningTableModel(dataValues, xBins, yBins, precision));
+        table.clearSelection();
         surface3DView.setData(dataValues, xBins, yBins, minValue, maxValue);
     }
 
@@ -125,15 +268,17 @@ public class TuningTableView {
         return content;
     }
 
-    private static class TuningTableModel extends AbstractTableModel {
-        private final Double[][] data;
-        private final Double[] xBins;
-        private final Double[] yBins;
+    static class TuningTableModel extends AbstractTableModel {
+        final Double[][] data;
+        final Double[] xBins;
+        final Double[] yBins;
+        private final int precision;
 
-        public TuningTableModel(Double[][] data, Double[] xBins, Double[] yBins) {
+        public TuningTableModel(Double[][] data, Double[] xBins, Double[] yBins, int precision) {
             this.data = data;
             this.xBins = xBins;
             this.yBins = yBins;
+            this.precision = precision;
         }
 
         @Override
@@ -170,17 +315,9 @@ public class TuningTableView {
 
         private String formatNumber(Object value) {
             if (value instanceof Number) {
-                double num = ((Number) value).doubleValue();
-                return String.format("%.1f", num);
+                return String.format("%." + precision + "f", ((Number) value).doubleValue()).replace(',', '.');
             }
-            if (value == null) return "";
-            String strValue = value.toString();
-            try {
-                double num = Double.parseDouble(strValue);
-                return String.format("%.1f", num);
-            } catch (NumberFormatException e) {
-                return strValue;
-            }
+            return String.valueOf(value);
         }
     }
 
@@ -188,8 +325,13 @@ public class TuningTableView {
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
             Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-            if (column == 0 || isSelected) {
-                c.setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
+            if (isSelected) {
+                c.setBackground(Color.ORANGE);
+                c.setForeground(Color.BLACK);
+                return c;
+            }
+            if (column == 0) {
+                c.setBackground(table.getBackground());
                 return c;
             }
 

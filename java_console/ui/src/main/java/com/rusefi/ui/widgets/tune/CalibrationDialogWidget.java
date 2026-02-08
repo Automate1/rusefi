@@ -13,14 +13,24 @@ import com.rusefi.ui.UIContext;
 import com.rusefi.ui.laf.GradientTitleBorder;
 
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.net.URI;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+/**
+ * @see TuningTableView
+ */
 public class CalibrationDialogWidget {
     private final JPanel contentPane = new JPanel();
 
     public CalibrationDialogWidget(UIContext uiContext) {
         contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
+        contentPane.setAlignmentX(Component.LEFT_ALIGNMENT);
     }
 
     public void update(DialogModel dialogModel, IniFileModel iniFileModel, ConfigurationImage ci) {
@@ -32,6 +42,7 @@ public class CalibrationDialogWidget {
             } else {
                 contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
             }
+            contentPane.setAlignmentX(Component.LEFT_ALIGNMENT);
             fillPanel(contentPane, dialogModel, iniFileModel, ci);
         }
         contentPane.revalidate();
@@ -73,7 +84,11 @@ public class CalibrationDialogWidget {
                 IniField f = iniField.get();
                 JPanel row = new JPanel();
                 row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
-                row.add(new JLabel(field.getUiName()));
+                row.setAlignmentX(Component.LEFT_ALIGNMENT);
+                row.add(Box.createHorizontalStrut(10));
+                JLabel label = new JLabel(field.getUiName());
+                applyStyle(label);
+                row.add(label);
 
                 if (f instanceof EnumIniField) {
                     EnumIniField enumField = (EnumIniField) f;
@@ -84,33 +99,58 @@ public class CalibrationDialogWidget {
 
                     if (isCheckBox) {
                         JCheckBox checkBox = new JCheckBox();
+                        applyStyle(checkBox);
                         checkBox.setSelected(currentValue.equalsIgnoreCase("\"Enabled\"") || currentValue.equalsIgnoreCase("\"Yes\""));
                         row.add(checkBox);
                     } else {
+                        String cleanValue = currentValue.replace("\"", "");
                         JComboBox<String> comboBox = new JComboBox<>(enumField.getEnums().values().toArray(new String[0]));
-                        comboBox.setSelectedItem(currentValue.replace("\"", ""));
+                        applyStyle(comboBox);
+                        comboBox.setSelectedItem(cleanValue);
+                        applyBackgroundColor(comboBox, cleanValue);
                         comboBox.setMaximumSize(comboBox.getPreferredSize());
                         row.add(comboBox);
                     }
                 } else {
                     String currentValue = ci == null ? "" : ConfigurationImageGetterSetter.getStringValue(f, ci);
                     JTextField textField = new JTextField(currentValue);
+                    applyStyle(textField);
+                    applyBackgroundColor(textField, currentValue);
                     textField.setMaximumSize(textField.getPreferredSize());
                     row.add(textField);
                 }
                 container.add(row);
             } else {
-                container.add(new JLabel(field.getUiName()));
+                JLabel label = new JLabel(field.getUiName());
+                applyStyle(label);
+                label.setOpaque(true);
+                label.setAlignmentX(Component.LEFT_ALIGNMENT);
+                applyBackgroundColor(label, field.getUiName());
+                applyLinkLogic(label, field.getUiName());
+
+                JPanel row = new JPanel();
+                row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+                row.setAlignmentX(Component.LEFT_ALIGNMENT);
+                row.add(Box.createHorizontalStrut(10));
+                row.add(label);
+                container.add(row);
             }
         }
 
         for (DialogModel.Command command : dialogModel.getCommandsOfCurrentDialog()) {
             JButton button = new JButton(command.getUiName());
+            applyStyle(button);
+            button.setAlignmentX(Component.LEFT_ALIGNMENT);
             button.addActionListener(e -> {
                 // TODO: implement command execution
                 System.out.println("Executing command: " + command.getCommand());
             });
-            container.add(button);
+            JPanel row = new JPanel();
+            row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+            row.setAlignmentX(Component.LEFT_ALIGNMENT);
+            row.add(Box.createHorizontalStrut(10));
+            row.add(button);
+            container.add(row);
         }
 
         List<PanelModel> panels = dialogModel.getPanels();
@@ -123,6 +163,7 @@ public class CalibrationDialogWidget {
                 if (horizontalPanel == null) {
                     horizontalPanel = new JPanel();
                     horizontalPanel.setLayout(new BoxLayout(horizontalPanel, BoxLayout.X_AXIS));
+                    horizontalPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
                     container.add(horizontalPanel);
                 }
             } else {
@@ -134,7 +175,10 @@ public class CalibrationDialogWidget {
             CurveModel curve = iniFileModel.getCurves().get(panel.getPanelName());
             if (curve != null) {
                 CurveWidget curveWidget = new CurveWidget(curve, iniFileModel, ci);
-                targetContainer.add(curveWidget.getContentPane());
+                JComponent content = curveWidget.getContentPane();
+                applyStyle(content);
+                content.setAlignmentX(Component.LEFT_ALIGNMENT);
+                targetContainer.add(content);
                 continue;
             }
 
@@ -142,11 +186,15 @@ public class CalibrationDialogWidget {
             if (table != null) {
                 TuningTableView tuningTableView = new TuningTableView(table.getTitle());
                 tuningTableView.displayTable(iniFileModel, table.getTableId(), ci);
-                targetContainer.add(tuningTableView.getContent());
+                JComponent content = tuningTableView.getContent();
+                applyStyle(content);
+                content.setAlignmentX(Component.LEFT_ALIGNMENT);
+                targetContainer.add(content);
                 continue;
             }
 
             JPanel panelWidget = new JPanel();
+            panelWidget.setAlignmentX(Component.LEFT_ALIGNMENT);
             DialogModel subDialog = panel.resolveDialog(iniFileModel);
             String subLayoutHint = subDialog != null ? subDialog.getLayoutHint() : null;
             if ("xAxis".equalsIgnoreCase(subLayoutHint)) {
@@ -168,6 +216,48 @@ public class CalibrationDialogWidget {
                 GradientTitleBorder.installBorder(panel.getPanelName(), panelWidget);
             }
             targetContainer.add(panelWidget);
+        }
+    }
+
+    private static void applyStyle(JComponent component) {
+        Font font = component.getFont();
+        if (font != null) {
+            component.setFont(font.deriveFont(font.getSize() * 2.0f));
+        }
+    }
+
+    private static void applyBackgroundColor(JComponent component, String value) {
+        if (value.startsWith("#")) {
+            component.setBackground(java.awt.Color.BLUE);
+            component.setForeground(java.awt.Color.WHITE);
+        } else if (value.startsWith("!")) {
+            component.setBackground(java.awt.Color.RED);
+            component.setForeground(java.awt.Color.WHITE);
+        }
+    }
+
+    private static void applyLinkLogic(JLabel label, String text) {
+        if (text == null) {
+            return;
+        }
+        // Basic pattern to match <a href=URL>text</a>
+        Pattern pattern = Pattern.compile("href=([^> ]+)>([^<]+)</a>");
+        Matcher matcher = pattern.matcher(text);
+        if (matcher.find()) {
+            String url = matcher.group(1);
+            String visibleText = matcher.group(2);
+            label.setText(visibleText);
+            label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            label.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    try {
+                        Desktop.getDesktop().browse(new URI(url));
+                    } catch (Exception ex) {
+                        System.err.println("Failed to open URL: " + url);
+                    }
+                }
+            });
         }
     }
 
