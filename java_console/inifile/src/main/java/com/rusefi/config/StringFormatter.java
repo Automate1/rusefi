@@ -13,10 +13,15 @@ public class StringFormatter {
     }
 
     public static String niceToString(double value, int precision) {
-        int scale = (int) Math.log10(value);
-        int places = 1 + Math.max(0, precision - scale);
-        double toScale = Math.pow(10, places);
-        return Double.toString(Math.round(value * toScale) / toScale);
+        if (precision <= 0) {
+            return Integer.toString((int) Math.round(value));
+        }
+        double toScale = Math.pow(10, precision);
+        String result = Double.toString(Math.round(value * toScale) / toScale);
+        if (result.endsWith(".0")) {
+            return result.substring(0, result.length() - 2);
+        }
+        return result;
     }
 
     public static String niceToString(Number value) {

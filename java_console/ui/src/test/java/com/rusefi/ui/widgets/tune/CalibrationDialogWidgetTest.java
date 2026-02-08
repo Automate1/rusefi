@@ -179,13 +179,18 @@ public class CalibrationDialogWidgetTest {
         assertEquals(1, content.getComponentCount());
         JPanel tablePanel = (JPanel) content.getComponent(0);
 
-        // TuningTableView content contains a JLabel and a JTable (via JTableHeader and JTable)
-        // See TuningTableView constructor
+        // TuningTableView content contains a topPanel which contains a JLabel
         boolean foundLabel = false;
         for (Component c : tablePanel.getComponents()) {
-            if (c instanceof JLabel && ((JLabel) c).getText().equals("Table Title")) {
-                foundLabel = true;
+            if (c instanceof JPanel) {
+                for (Component sub : ((JPanel) c).getComponents()) {
+                    if (sub instanceof JLabel && ((JLabel) sub).getText().equals("Table Title")) {
+                        foundLabel = true;
+                        break;
+                    }
+                }
             }
+            if (foundLabel) break;
         }
         assertTrue(foundLabel, "Should find table title label");
     }
@@ -221,9 +226,15 @@ public class CalibrationDialogWidgetTest {
 
         boolean foundLabel = false;
         for (Component c : tablePanel.getComponents()) {
-            if (c instanceof JLabel && ((JLabel) c).getText().equals("Table Title")) {
-                foundLabel = true;
+            if (c instanceof JPanel) {
+                for (Component sub : ((JPanel) c).getComponents()) {
+                    if (sub instanceof JLabel && ((JLabel) sub).getText().equals("Table Title")) {
+                        foundLabel = true;
+                        break;
+                    }
+                }
             }
+            if (foundLabel) break;
         }
         assertTrue(foundLabel, "Should find table title label when updating by key");
     }
@@ -262,9 +273,15 @@ public class CalibrationDialogWidgetTest {
         // Check command button
         boolean foundButton = false;
         for (Component c : panelWidget.getComponents()) {
-            if (c instanceof JButton && ((JButton) c).getText().equals("Spark #1")) {
-                foundButton = true;
+            if (c instanceof JPanel) {
+                for (Component sub : ((JPanel) c).getComponents()) {
+                    if (sub instanceof JButton && ((JButton) sub).getText().equals("Spark #1")) {
+                        foundButton = true;
+                        break;
+                    }
+                }
             }
+            if (foundButton) break;
         }
         assertTrue(foundButton, "Should find command button 'Spark #1'");
     }
@@ -298,5 +315,169 @@ public class CalibrationDialogWidgetTest {
         }
         EnumIniField.EnumKeyValueMap enumMap = new EnumIniField.EnumKeyValueMap(map);
         return new EnumIniField("test", 0, FieldType.INT8, enumMap, 0, 0);
+    }
+
+    @Test
+    public void testBackgroundColor() {
+        IniFileModel iniFileModel = mock(IniFileModel.class);
+        when(iniFileModel.getCurves()).thenReturn(Collections.emptyMap());
+
+        // Field starting with # should be blue
+        com.opensr5.ini.field.StringIniField blueField = new com.opensr5.ini.field.StringIniField("blue", 0, 10);
+        when(iniFileModel.findIniField("blue")).thenReturn(java.util.Optional.of(blueField));
+
+        // Field starting with ! should be red
+        com.opensr5.ini.field.StringIniField redField = new com.opensr5.ini.field.StringIniField("red", 10, 10);
+        when(iniFileModel.findIniField("red")).thenReturn(java.util.Optional.of(redField));
+
+        // Normal field
+        com.opensr5.ini.field.StringIniField normalField = new com.opensr5.ini.field.StringIniField("normal", 20, 10);
+        when(iniFileModel.findIniField("normal")).thenReturn(java.util.Optional.of(normalField));
+
+        List<DialogModel.Field> fields = new ArrayList<>();
+        fields.add(new DialogModel.Field("blue", "Blue Label"));
+        fields.add(new DialogModel.Field("red", "Red Label"));
+        fields.add(new DialogModel.Field("normal", "Normal Label"));
+
+        DialogModel mainDialog = new DialogModel("main", "Main", fields, Collections.emptyList());
+
+        ConfigurationImage ci = new ConfigurationImage(new byte[100]);
+        // Set values in image
+        System.arraycopy("#blue".getBytes(), 0, ci.getContent(), 0, 5);
+        System.arraycopy("!red".getBytes(), 0, ci.getContent(), 10, 4);
+        System.arraycopy("normal".getBytes(), 0, ci.getContent(), 20, 6);
+
+        CalibrationDialogWidget widget = new CalibrationDialogWidget(new UIContext());
+        widget.update(mainDialog, iniFileModel, ci);
+
+        JPanel content = widget.getContentPane();
+        assertEquals(3, content.getComponentCount());
+
+        // Helper to find JTextField in a row
+        java.util.function.Function<JPanel, JTextField> getTextField = row -> {
+            for (Component c : row.getComponents()) {
+                if (c instanceof JTextField) return (JTextField) c;
+            }
+            return null;
+        };
+
+        JTextField blueTF = getTextField.apply((JPanel) content.getComponent(0));
+        assertNotNull(blueTF);
+        assertEquals(Color.BLUE, blueTF.getBackground());
+        assertEquals(Color.WHITE, blueTF.getForeground());
+
+        JTextField redTF = getTextField.apply((JPanel) content.getComponent(1));
+        assertNotNull(redTF);
+        assertEquals(Color.RED, redTF.getBackground());
+        assertEquals(Color.WHITE, redTF.getForeground());
+
+        JTextField normalTF = getTextField.apply((JPanel) content.getComponent(2));
+        assertNotNull(normalTF);
+        // Default background varies by LAF, but it shouldn't be Blue or Red
+        assertNotEquals(Color.BLUE, normalTF.getBackground());
+        assertNotEquals(Color.RED, normalTF.getBackground());
+    }
+
+    @Test
+    public void testEnumBackgroundColor() {
+        IniFileModel iniFileModel = mock(IniFileModel.class);
+        when(iniFileModel.getCurves()).thenReturn(Collections.emptyMap());
+
+        // Enum field starting with ! should be red
+        Map<Integer, String> enumMap = new HashMap<>();
+        enumMap.put(0, "!Red Option");
+        enumMap.put(1, "Normal Option");
+        EnumIniField redEnumField = new EnumIniField("redEnum", 0, FieldType.INT8, new EnumIniField.EnumKeyValueMap(enumMap), 0, 0);
+        when(iniFileModel.findIniField("redEnum")).thenReturn(java.util.Optional.of(redEnumField));
+
+        List<DialogModel.Field> fields = new ArrayList<>();
+        fields.add(new DialogModel.Field("redEnum", "Red Enum Label"));
+
+        DialogModel mainDialog = new DialogModel("main", "Main", fields, Collections.emptyList());
+
+        ConfigurationImage ci = new ConfigurationImage(new byte[100]);
+        ci.getContent()[0] = 0; // Select the "!Red Option"
+
+        CalibrationDialogWidget widget = new CalibrationDialogWidget(new UIContext());
+        widget.update(mainDialog, iniFileModel, ci);
+
+        JPanel content = widget.getContentPane();
+        JPanel row = (JPanel) content.getComponent(0);
+        JComboBox comboBox = null;
+        for (Component c : row.getComponents()) {
+            if (c instanceof JComboBox) {
+                comboBox = (JComboBox) c;
+                break;
+            }
+        }
+
+        assertNotNull(comboBox);
+        assertEquals(Color.RED, comboBox.getBackground());
+        assertEquals(Color.WHITE, comboBox.getForeground());
+    }
+
+    @Test
+    public void testTextOnlyFieldBackgroundColor() {
+        IniFileModel iniFileModel = mock(IniFileModel.class);
+        when(iniFileModel.getCurves()).thenReturn(Collections.emptyMap());
+
+        List<DialogModel.Field> fields = new ArrayList<>();
+        fields.add(new DialogModel.Field("key1", "!Red Label"));
+        fields.add(new DialogModel.Field("key2", "#Blue Label"));
+        fields.add(new DialogModel.Field("key3", "Normal Label"));
+
+        DialogModel mainDialog = new DialogModel("main", "Main", fields, Collections.emptyList());
+
+        CalibrationDialogWidget widget = new CalibrationDialogWidget(new UIContext());
+        widget.update(mainDialog, iniFileModel, null);
+
+        JPanel content = widget.getContentPane();
+        assertEquals(3, content.getComponentCount());
+
+        JLabel redLabel = getLabelFromRow((JPanel) content.getComponent(0));
+        assertEquals("!Red Label", redLabel.getText());
+        assertEquals(Color.RED, redLabel.getBackground());
+        assertEquals(Color.WHITE, redLabel.getForeground());
+        assertTrue(redLabel.isOpaque());
+
+        JLabel blueLabel = getLabelFromRow((JPanel) content.getComponent(1));
+        assertEquals("#Blue Label", blueLabel.getText());
+        assertEquals(Color.BLUE, blueLabel.getBackground());
+        assertEquals(Color.WHITE, blueLabel.getForeground());
+        assertTrue(blueLabel.isOpaque());
+
+        JLabel normalLabel = getLabelFromRow((JPanel) content.getComponent(2));
+        assertEquals("Normal Label", normalLabel.getText());
+        assertNotEquals(Color.RED, normalLabel.getBackground());
+        assertNotEquals(Color.BLUE, normalLabel.getBackground());
+    }
+
+    private JLabel getLabelFromRow(JPanel row) {
+        for (Component c : row.getComponents()) {
+            if (c instanceof JLabel) return (JLabel) c;
+        }
+        return null;
+    }
+
+    @Test
+    public void testLinkLabel() {
+        IniFileModel iniFileModel = mock(IniFileModel.class);
+        when(iniFileModel.getCurves()).thenReturn(Collections.emptyMap());
+
+        List<DialogModel.Field> fields = new ArrayList<>();
+        fields.add(new DialogModel.Field("key1", "!<html><a href=https://rusefi.com/s/vvt>https://rusefi.com/s/vvt</a></html>"));
+
+        DialogModel mainDialog = new DialogModel("main", "Main", fields, Collections.emptyList());
+
+        CalibrationDialogWidget widget = new CalibrationDialogWidget(new UIContext());
+        widget.update(mainDialog, iniFileModel, null);
+
+        JPanel content = widget.getContentPane();
+        assertEquals(1, content.getComponentCount());
+
+        JLabel linkLabel = getLabelFromRow((JPanel) content.getComponent(0));
+        assertEquals("https://rusefi.com/s/vvt", linkLabel.getText());
+        assertEquals(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR), linkLabel.getCursor());
+        assertEquals(1, linkLabel.getMouseListeners().length);
     }
 }
