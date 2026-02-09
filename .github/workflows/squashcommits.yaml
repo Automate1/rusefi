@@ -1,11 +1,6 @@
 name: Reset Branch History
 on:
   workflow_dispatch:
-    inputs:
-      branch_name:
-        description: 'The branch you want to clear'
-        required: true
-        default: 'main'
 
 jobs:
   clear-history:
@@ -17,23 +12,23 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.event.inputs.branch_name }}
+          ref: ${{ github.ref_name }}
 
-      - name: Rebuild Branch with Single Commit
+      - name: Squash History into Single Commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Create a new orphan branch containing the current files
-          git checkout --orphan temp_branch
-          
-          # Stage all files and create the first commit
+          # 1. Create a new temporary branch from the current state
+          git checkout -b temp-squash-branch
+
+          # 2. Reset the branch to the very first commit ever made in the repo
+          # This keeps all your files 'staged' for a new commit
+          git reset $(git rev-list --max-parents=0 HEAD)
+
+          # 3. Commit everything as one single 'clean' commit
           git add -A
-          git commit -m "Initial commit (history cleared)"
-          
-          # Force rename the temp branch to the target branch name
-          git branch -D ${{ github.event.inputs.branch_name }}
-          git branch -m ${{ github.event.inputs.branch_name }}
-          
-          # Force push to overwrite the remote history
-          git push origin ${{ github.event.inputs.branch_name }} --force
+          git commit -m "Cleaned history - squashed all commits"
+
+          # 4. Force push this back to your selected branch
+          git push origin temp-squash-branch:${{ github.ref_name }} --force
