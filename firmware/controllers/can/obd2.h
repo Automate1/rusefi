@@ -5,6 +5,8 @@
  * @author Andrey Belomutskiy, (c) 2012-2020
  */
 
+
+// Just a test
 #pragma once
 #include "can.h"
 
