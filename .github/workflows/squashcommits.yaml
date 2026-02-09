@@ -1,48 +1,39 @@
-name: Squash Branch Commits
-
+name: Reset Branch History
 on:
   workflow_dispatch:
     inputs:
       branch_name:
-        description: 'The name of the branch to squash (e.g., feature-branch)'
+        description: 'The branch you want to clear'
         required: true
-        type: string
+        default: 'main'
 
 jobs:
-  squash_commits:
+  clear-history:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout repository
-        uses: [actions/checkout](https://github.com)
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Fetch all history to ensure accuracy
+          fetch-depth: 0
+          ref: ${{ github.event.inputs.branch_name }}
 
-      - name: Configure Git
+      - name: Rebuild Branch with Single Commit
         run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Squash commits and force push
-        run: |
-          BRANCH_NAME="${{ github.event.inputs.branch_name }}"
-          
-          # Check out the target branch
-          git checkout $BRANCH_NAME
-
-          # Create a temporary orphan branch from the current state (no history)
+          # Create a new orphan branch containing the current files
           git checkout --orphan temp_branch
-
-          # Stage all changes (including deletions)
+          
+          # Stage all files and create the first commit
           git add -A
-
-          # Commit all changes as a single "Initial commit" for the new history
-          git commit -m "Clean commit of all changes"
-
-          # Delete the original branch locally
-          git branch -D $BRANCH_NAME
-
-          # Rename the temporary branch to the original branch name
-          git branch -m $BRANCH_NAME
-
-          # Force push to overwrite the remote branch's history
-          git push origin $BRANCH_NAME --force
+          git commit -m "Initial commit (history cleared)"
+          
+          # Force rename the temp branch to the target branch name
+          git branch -D ${{ github.event.inputs.branch_name }}
+          git branch -m ${{ github.event.inputs.branch_name }}
+          
+          # Force push to overwrite the remote history
+          git push origin ${{ github.event.inputs.branch_name }} --force
