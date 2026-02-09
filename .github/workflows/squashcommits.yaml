@@ -1,6 +1,11 @@
 name: Reset Branch History
 on:
-  workflow_dispatch: # No inputs here = GitHub shows the branch selector automatically
+  workflow_dispatch:
+    inputs:
+      target_branch:
+        description: 'Type the EXACT name of the branch to wipe'
+        required: true
+        default: 'dev'
 
 jobs:
   clear-history:
@@ -12,28 +17,36 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.ref_name }}
+          # We checkout the branch the user typed in the box
+          ref: ${{ github.event.inputs.target_branch }}
 
-      - name: Backup and Reset
+      - name: Backup and Squash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # 1. Create a safety backup branch
+          # 1. Create a safety backup of the branch before wiping
           TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-          git checkout -b "backup/${{ github.ref_name }}-$TIMESTAMP"
-          git push origin "backup/${{ github.ref_name }}-$TIMESTAMP"
-          
-          # 2. Go back to the branch we want to wipe
-          git checkout ${{ github.ref_name }}
+          BACKUP_NAME="backup/${{ github.event.inputs.target_branch }}-$TIMESTAMP"
+          git checkout -b "$BACKUP_NAME"
+          git push origin "$BACKUP_NAME"
 
-          # 3. Squash all changes into a single commit
-          # We reset to the very first commit to keep file history links
-          git reset $(git rev-list --max-parents=0 HEAD)
+          # 2. Return to the branch we want to clean
+          git checkout ${{ github.event.inputs.target_branch }}
+
+          # 3. Soft reset to the very first commit (preserves files, wipes history)
+          # Using rev-list --max-parents=0 finds the 'root' commit
+          git reset --soft $(git rev-list --max-parents=0 HEAD)
           
-          # 4. Commit the current state as one single block
+          # 4. Commit everything as a single new "Initial" state
           git add -A
-          git commit -m "Cleaned history (Squashed to single commit)"
+          git commit -m "Cleaned history (Squashed at $TIMESTAMP)"
           
-          # 5. Force push to overwrite the old messy history
-          git push origin ${{ github.ref_name }} --force
+          # 5. Force push to overwrite the remote history
+          git push origin ${{ github.event.inputs.target_branch }} --force
+
+      - name: Summary
+        run: |
+          echo "### ✅ History Reset Complete" >> $GITHUB_STEP_SUMMARY
+          echo "Branch: \`${{ github.event.inputs.target_branch }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "Backup created: \`backup/${{ github.event.inputs.target_branch }}\`" >> $GITHUB_STEP_SUMMARY
