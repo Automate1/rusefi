@@ -1,6 +1,6 @@
-name: Reset Branch History (With Backup)
+name: Reset Branch History
 on:
-  workflow_dispatch:
+  workflow_dispatch: # No inputs here = GitHub shows the branch selector automatically
 
 jobs:
   clear-history:
@@ -14,37 +14,26 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.ref_name }}
 
-      - name: Create Backup and Reset History
+      - name: Backup and Reset
         run: |
-          # 1. Configure Git
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # 2. Create a timestamped backup branch
+          # 1. Create a safety backup branch
           TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-          BACKUP_NAME="backup/${{ github.ref_name }}-$TIMESTAMP"
-          echo "Creating backup branch: $BACKUP_NAME"
-          git checkout -b "$BACKUP_NAME"
-          git push origin "$BACKUP_NAME"
-
-          # 3. Switch back to the branch we want to clean
+          git checkout -b "backup/${{ github.ref_name }}-$TIMESTAMP"
+          git push origin "backup/${{ github.ref_name }}-$TIMESTAMP"
+          
+          # 2. Go back to the branch we want to wipe
           git checkout ${{ github.ref_name }}
 
-          # 4. Perform the history wipe
-          # This keeps all current files but removes the commit history
-          git checkout --orphan temp_branch
+          # 3. Squash all changes into a single commit
+          # We reset to the very first commit to keep file history links
+          git reset $(git rev-list --max-parents=0 HEAD)
+          
+          # 4. Commit the current state as one single block
           git add -A
-          git commit -m "Initial commit (Cleaned history at $TIMESTAMP)"
+          git commit -m "Cleaned history (Squashed to single commit)"
           
-          # 5. Overwrite the target branch with the clean version
-          git branch -D ${{ github.ref_name }}
-          git branch -m ${{ github.ref_name }}
-          
-          # 6. Force push the clean history
+          # 5. Force push to overwrite the old messy history
           git push origin ${{ github.ref_name }} --force
-
-      - name: Success Summary
-        run: |
-          echo "### ✅ History Reset Successful" >> $GITHUB_STEP_SUMMARY
-          echo "The branch \`${{ github.ref_name }}\` has been reset to a single commit." >> $GITHUB_STEP_SUMMARY
-          echo "A backup of the old history was created at: \`backup/${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
