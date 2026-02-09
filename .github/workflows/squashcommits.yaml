@@ -1,4 +1,4 @@
-name: Reset Branch History
+name: Reset Branch History (With Backup)
 on:
   workflow_dispatch:
 
@@ -14,21 +14,37 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.ref_name }}
 
-      - name: Squash History into Single Commit
+      - name: Create Backup and Reset History
         run: |
+          # 1. Configure Git
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # 1. Create a new temporary branch from the current state
-          git checkout -b temp-squash-branch
+          # 2. Create a timestamped backup branch
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          BACKUP_NAME="backup/${{ github.ref_name }}-$TIMESTAMP"
+          echo "Creating backup branch: $BACKUP_NAME"
+          git checkout -b "$BACKUP_NAME"
+          git push origin "$BACKUP_NAME"
 
-          # 2. Reset the branch to the very first commit ever made in the repo
-          # This keeps all your files 'staged' for a new commit
-          git reset $(git rev-list --max-parents=0 HEAD)
+          # 3. Switch back to the branch we want to clean
+          git checkout ${{ github.ref_name }}
 
-          # 3. Commit everything as one single 'clean' commit
+          # 4. Perform the history wipe
+          # This keeps all current files but removes the commit history
+          git checkout --orphan temp_branch
           git add -A
-          git commit -m "Cleaned history - squashed all commits"
+          git commit -m "Initial commit (Cleaned history at $TIMESTAMP)"
+          
+          # 5. Overwrite the target branch with the clean version
+          git branch -D ${{ github.ref_name }}
+          git branch -m ${{ github.ref_name }}
+          
+          # 6. Force push the clean history
+          git push origin ${{ github.ref_name }} --force
 
-          # 4. Force push this back to your selected branch
-          git push origin temp-squash-branch:${{ github.ref_name }} --force
+      - name: Success Summary
+        run: |
+          echo "### ✅ History Reset Successful" >> $GITHUB_STEP_SUMMARY
+          echo "The branch \`${{ github.ref_name }}\` has been reset to a single commit." >> $GITHUB_STEP_SUMMARY
+          echo "A backup of the old history was created at: \`backup/${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
