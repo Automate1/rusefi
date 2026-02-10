@@ -81,6 +81,10 @@ public class ConnectionStatusLogic {
     }
 
     public interface Listener {
+        Listener VOID = isConnected -> {};
+
         void onConnectionStatus(boolean isConnected);
+        default void onConnectionEstablished() {}
+        default void onConnectionFailed(String s) {}
     }
 }
