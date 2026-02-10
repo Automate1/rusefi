@@ -75,7 +75,10 @@ public class LinkManager implements Closeable {
     public CountDownLatch connect(String port, boolean isScanningForEcu) {
         final CountDownLatch connected = new CountDownLatch(1);
 
-        startAndConnect(port, new ConnectionStateListener() {
+        startAndConnect(port, new ConnectionStatusLogic.Listener() {
+            @Override
+            public void onConnectionStatus(boolean isConnected) {}
+
             @Override
             public void onConnectionFailed(String s) {
                 if (!isScanningForEcu)
@@ -109,7 +112,7 @@ public class LinkManager implements Closeable {
     public void setBinaryProtocolForTests(BinaryProtocol binaryProtocol) {
         this.connector = new LinkConnector() {
             @Override
-            public void connectAndReadConfiguration(BinaryProtocol.Arguments arguments, ConnectionStateListener listener) {
+            public void connectAndReadConfiguration(BinaryProtocol.Arguments arguments, ConnectionStatusLogic.Listener listener) {
             }
 
             @Override
@@ -238,7 +241,7 @@ public class LinkManager implements Closeable {
 
     public void startAndConnect(
         final String port,
-        final ConnectionStateListener stateListener
+        final ConnectionStatusLogic.Listener stateListener
     ) {
         Objects.requireNonNull(port, "port");
         start(port, stateListener);
@@ -253,7 +256,7 @@ public class LinkManager implements Closeable {
         return connector;
     }
 
-    public void start(String port, ConnectionFailedListener stateListener) {
+    public void start(String port, ConnectionStatusLogic.Listener stateListener) {
         Objects.requireNonNull(port, "port");
         log.info("LinkManager: Starting " + port);
         lastTriedPort = port; // Save port before connection attempt

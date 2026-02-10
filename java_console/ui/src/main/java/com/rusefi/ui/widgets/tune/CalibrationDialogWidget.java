@@ -11,6 +11,9 @@ import com.opensr5.ini.field.EnumIniField;
 import com.opensr5.ini.field.IniField;
 import com.rusefi.ui.UIContext;
 import com.rusefi.ui.laf.GradientTitleBorder;
+import com.rusefi.ui.util.ScrollablePanel;
+import com.rusefi.ui.util.SwingUtil;
+import com.rusefi.ui.util.WrapLayout;
 
 import javax.swing.*;
 import java.awt.*;
@@ -26,9 +29,11 @@ import java.util.regex.Pattern;
  * @see TuningTableView
  */
 public class CalibrationDialogWidget {
-    private final JPanel contentPane = new JPanel();
+    private final JPanel contentPane = new ScrollablePanel();
+    private final UIContext uiContext;
 
     public CalibrationDialogWidget(UIContext uiContext) {
+        this.uiContext = uiContext;
         contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
         contentPane.setAlignmentX(Component.LEFT_ALIGNMENT);
     }
@@ -36,17 +41,28 @@ public class CalibrationDialogWidget {
     public void update(DialogModel dialogModel, IniFileModel iniFileModel, ConfigurationImage ci) {
         contentPane.removeAll();
         if (dialogModel != null) {
-            String layoutHint = dialogModel.getLayoutHint();
-            if ("xAxis".equalsIgnoreCase(layoutHint)) {
-                contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.X_AXIS));
-            } else {
-                contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
-            }
+            applyLayout(contentPane, dialogModel.getLayoutHint());
             contentPane.setAlignmentX(Component.LEFT_ALIGNMENT);
             fillPanel(contentPane, dialogModel, iniFileModel, ci);
         }
         contentPane.revalidate();
         contentPane.repaint();
+        // After the initial layout gives children their actual widths,
+        // WrapLayout can compute correct wrapped heights on the second pass.
+        // invalidateTree is needed because revalidate() only invalidates the
+        // component and its ancestors, not children — so children return
+        // stale cached preferred sizes computed before wrapping.
+        SwingUtilities.invokeLater(() -> {
+            SwingUtil.invalidateTree(contentPane);
+            contentPane.revalidate();
+            contentPane.repaint();
+        });
+    }
+
+    public void update(String key) {
+        IniFileModel iniFileModel = uiContext.iniFileState.getIniFileModel();
+        ConfigurationImage ci = uiContext.getBinaryProtocol().getControllerConfiguration();
+        update(key, iniFileModel, ci);
     }
 
     public void update(String key, IniFileModel iniFileModel, ConfigurationImage ci) {
@@ -89,6 +105,7 @@ public class CalibrationDialogWidget {
                 JLabel label = new JLabel(field.getUiName());
                 applyStyle(label);
                 row.add(label);
+                row.add(Box.createHorizontalStrut(16));
 
                 if (f instanceof EnumIniField) {
                     EnumIniField enumField = (EnumIniField) f;
@@ -119,6 +136,7 @@ public class CalibrationDialogWidget {
                     textField.setMaximumSize(textField.getPreferredSize());
                     row.add(textField);
                 }
+                fixRowHeight(row);
                 container.add(row);
             } else {
                 JLabel label = new JLabel(field.getUiName());
@@ -133,6 +151,7 @@ public class CalibrationDialogWidget {
                 row.setAlignmentX(Component.LEFT_ALIGNMENT);
                 row.add(Box.createHorizontalStrut(10));
                 row.add(label);
+                fixRowHeight(row);
                 container.add(row);
             }
         }
@@ -150,27 +169,31 @@ public class CalibrationDialogWidget {
             row.setAlignmentX(Component.LEFT_ALIGNMENT);
             row.add(Box.createHorizontalStrut(10));
             row.add(button);
+            fixRowHeight(row);
             container.add(row);
         }
 
+        boolean isGridLayout = container.getLayout() instanceof GridLayout;
         List<PanelModel> panels = dialogModel.getPanels();
         JPanel horizontalPanel = null;
         for (PanelModel panel : panels) {
             String placement = panel.getPlacement();
             boolean isHorizontal = "west".equalsIgnoreCase(placement) || "center".equalsIgnoreCase(placement) || "east".equalsIgnoreCase(placement);
 
-            if (isHorizontal) {
+            JPanel targetContainer;
+            if (isGridLayout) {
+                targetContainer = container;
+            } else if (isHorizontal) {
                 if (horizontalPanel == null) {
-                    horizontalPanel = new JPanel();
-                    horizontalPanel.setLayout(new BoxLayout(horizontalPanel, BoxLayout.X_AXIS));
+                    horizontalPanel = new JPanel(new WrapLayout(FlowLayout.LEFT, 0, 0));
                     horizontalPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
                     container.add(horizontalPanel);
                 }
+                targetContainer = horizontalPanel;
             } else {
                 horizontalPanel = null;
+                targetContainer = container;
             }
-
-            JPanel targetContainer = isHorizontal ? horizontalPanel : container;
 
             CurveModel curve = iniFileModel.getCurves().get(panel.getPanelName());
             if (curve != null) {
@@ -197,11 +220,7 @@ public class CalibrationDialogWidget {
             panelWidget.setAlignmentX(Component.LEFT_ALIGNMENT);
             DialogModel subDialog = panel.resolveDialog(iniFileModel);
             String subLayoutHint = subDialog != null ? subDialog.getLayoutHint() : null;
-            if ("xAxis".equalsIgnoreCase(subLayoutHint)) {
-                panelWidget.setLayout(new BoxLayout(panelWidget, BoxLayout.X_AXIS));
-            } else {
-                panelWidget.setLayout(new BoxLayout(panelWidget, BoxLayout.Y_AXIS));
-            }
+            applyLayout(panelWidget, subLayoutHint);
 
             if (subDialog != null) {
                 String uiName = subDialog.getUiName();
@@ -219,10 +238,26 @@ public class CalibrationDialogWidget {
         }
     }
 
+    private static void fixRowHeight(JPanel row) {
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row.getPreferredSize().height + 5));
+    }
+
+    private static void applyLayout(JPanel panel, String layoutHint) {
+        if ("border".equalsIgnoreCase(layoutHint)) {
+            // Equal-width columns keep the .ini West/East intent;
+            // children wrap inside their allocated width via WrapLayout.
+            panel.setLayout(new GridLayout(1, 0));
+        } else if ("xAxis".equalsIgnoreCase(layoutHint)) {
+            panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+        } else {
+            panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        }
+    }
+
     private static void applyStyle(JComponent component) {
         Font font = component.getFont();
         if (font != null) {
-            component.setFont(font.deriveFont(font.getSize() * 2.0f));
+            component.setFont(font.deriveFont(font.getSize() * 1.2f));
         }
     }
 
