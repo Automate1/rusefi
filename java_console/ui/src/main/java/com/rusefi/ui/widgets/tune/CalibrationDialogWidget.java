@@ -11,6 +11,9 @@ import com.opensr5.ini.field.EnumIniField;
 import com.opensr5.ini.field.IniField;
 import com.rusefi.ui.UIContext;
 import com.rusefi.ui.laf.GradientTitleBorder;
+import com.rusefi.ui.util.ScrollablePanel;
+import com.rusefi.ui.util.SwingUtil;
+import com.rusefi.ui.util.WrapLayout;
 
 import javax.swing.*;
 import java.awt.*;
@@ -26,7 +29,7 @@ import java.util.regex.Pattern;
  * @see TuningTableView
  */
 public class CalibrationDialogWidget {
-    private final JPanel contentPane = new JPanel();
+    private final JPanel contentPane = new ScrollablePanel();
     private final UIContext uiContext;
 
     public CalibrationDialogWidget(UIContext uiContext) {
@@ -38,19 +41,22 @@ public class CalibrationDialogWidget {
     public void update(DialogModel dialogModel, IniFileModel iniFileModel, ConfigurationImage ci) {
         contentPane.removeAll();
         if (dialogModel != null) {
-            String layoutHint = dialogModel.getLayoutHint();
-            if ("border".equalsIgnoreCase(layoutHint)) {
-                contentPane.setLayout(new BorderLayout());
-            } else if ("xAxis".equalsIgnoreCase(layoutHint)) {
-                contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.X_AXIS));
-            } else {
-                contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
-            }
+            applyLayout(contentPane, dialogModel.getLayoutHint());
             contentPane.setAlignmentX(Component.LEFT_ALIGNMENT);
             fillPanel(contentPane, dialogModel, iniFileModel, ci);
         }
         contentPane.revalidate();
         contentPane.repaint();
+        // After the initial layout gives children their actual widths,
+        // WrapLayout can compute correct wrapped heights on the second pass.
+        // invalidateTree is needed because revalidate() only invalidates the
+        // component and its ancestors, not children — so children return
+        // stale cached preferred sizes computed before wrapping.
+        SwingUtilities.invokeLater(() -> {
+            SwingUtil.invalidateTree(contentPane);
+            contentPane.revalidate();
+            contentPane.repaint();
+        });
     }
 
     public void update(String key) {
@@ -99,6 +105,7 @@ public class CalibrationDialogWidget {
                 JLabel label = new JLabel(field.getUiName());
                 applyStyle(label);
                 row.add(label);
+                row.add(Box.createHorizontalStrut(16));
 
                 if (f instanceof EnumIniField) {
                     EnumIniField enumField = (EnumIniField) f;
@@ -129,6 +136,7 @@ public class CalibrationDialogWidget {
                     textField.setMaximumSize(textField.getPreferredSize());
                     row.add(textField);
                 }
+                fixRowHeight(row);
                 container.add(row);
             } else {
                 JLabel label = new JLabel(field.getUiName());
@@ -143,6 +151,7 @@ public class CalibrationDialogWidget {
                 row.setAlignmentX(Component.LEFT_ALIGNMENT);
                 row.add(Box.createHorizontalStrut(10));
                 row.add(label);
+                fixRowHeight(row);
                 container.add(row);
             }
         }
@@ -160,10 +169,11 @@ public class CalibrationDialogWidget {
             row.setAlignmentX(Component.LEFT_ALIGNMENT);
             row.add(Box.createHorizontalStrut(10));
             row.add(button);
+            fixRowHeight(row);
             container.add(row);
         }
 
-        boolean isBorderLayout = container.getLayout() instanceof BorderLayout;
+        boolean isGridLayout = container.getLayout() instanceof GridLayout;
         List<PanelModel> panels = dialogModel.getPanels();
         JPanel horizontalPanel = null;
         for (PanelModel panel : panels) {
@@ -171,12 +181,11 @@ public class CalibrationDialogWidget {
             boolean isHorizontal = "west".equalsIgnoreCase(placement) || "center".equalsIgnoreCase(placement) || "east".equalsIgnoreCase(placement);
 
             JPanel targetContainer;
-            if (isBorderLayout) {
+            if (isGridLayout) {
                 targetContainer = container;
             } else if (isHorizontal) {
                 if (horizontalPanel == null) {
-                    horizontalPanel = new JPanel();
-                    horizontalPanel.setLayout(new BoxLayout(horizontalPanel, BoxLayout.X_AXIS));
+                    horizontalPanel = new JPanel(new WrapLayout(FlowLayout.LEFT, 0, 0));
                     horizontalPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
                     container.add(horizontalPanel);
                 }
@@ -192,7 +201,7 @@ public class CalibrationDialogWidget {
                 JComponent content = curveWidget.getContentPane();
                 applyStyle(content);
                 content.setAlignmentX(Component.LEFT_ALIGNMENT);
-                addToContainer(targetContainer, content, placement, isBorderLayout);
+                targetContainer.add(content);
                 continue;
             }
 
@@ -203,7 +212,7 @@ public class CalibrationDialogWidget {
                 JComponent content = tuningTableView.getContent();
                 applyStyle(content);
                 content.setAlignmentX(Component.LEFT_ALIGNMENT);
-                addToContainer(targetContainer, content, placement, isBorderLayout);
+                targetContainer.add(content);
                 continue;
             }
 
@@ -211,13 +220,7 @@ public class CalibrationDialogWidget {
             panelWidget.setAlignmentX(Component.LEFT_ALIGNMENT);
             DialogModel subDialog = panel.resolveDialog(iniFileModel);
             String subLayoutHint = subDialog != null ? subDialog.getLayoutHint() : null;
-            if ("border".equalsIgnoreCase(subLayoutHint)) {
-                panelWidget.setLayout(new BorderLayout());
-            } else if ("xAxis".equalsIgnoreCase(subLayoutHint)) {
-                panelWidget.setLayout(new BoxLayout(panelWidget, BoxLayout.X_AXIS));
-            } else {
-                panelWidget.setLayout(new BoxLayout(panelWidget, BoxLayout.Y_AXIS));
-            }
+            applyLayout(panelWidget, subLayoutHint);
 
             if (subDialog != null) {
                 String uiName = subDialog.getUiName();
@@ -231,30 +234,30 @@ public class CalibrationDialogWidget {
                 panelWidget.setName(panel.getPanelName());
                 GradientTitleBorder.installBorder(panel.getPanelName(), panelWidget);
             }
-            addToContainer(targetContainer, panelWidget, placement, isBorderLayout);
+            targetContainer.add(panelWidget);
         }
     }
 
-    private static void addToContainer(JPanel container, JComponent component, String placement, boolean isBorderLayout) {
-        if (isBorderLayout && placement != null) {
-            container.add(component, toBorderLayoutConstraint(placement));
+    private static void fixRowHeight(JPanel row) {
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row.getPreferredSize().height + 5));
+    }
+
+    private static void applyLayout(JPanel panel, String layoutHint) {
+        if ("border".equalsIgnoreCase(layoutHint)) {
+            // Equal-width columns keep the .ini West/East intent;
+            // children wrap inside their allocated width via WrapLayout.
+            panel.setLayout(new GridLayout(1, 0));
+        } else if ("xAxis".equalsIgnoreCase(layoutHint)) {
+            panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
         } else {
-            container.add(component);
+            panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         }
-    }
-
-    private static String toBorderLayoutConstraint(String placement) {
-        if ("west".equalsIgnoreCase(placement)) return BorderLayout.WEST;
-        if ("east".equalsIgnoreCase(placement)) return BorderLayout.EAST;
-        if ("north".equalsIgnoreCase(placement)) return BorderLayout.NORTH;
-        if ("south".equalsIgnoreCase(placement)) return BorderLayout.SOUTH;
-        return BorderLayout.CENTER;
     }
 
     private static void applyStyle(JComponent component) {
         Font font = component.getFont();
         if (font != null) {
-            component.setFont(font.deriveFont(font.getSize() * 2.0f));
+            component.setFont(font.deriveFont(font.getSize() * 1.2f));
         }
     }
 
