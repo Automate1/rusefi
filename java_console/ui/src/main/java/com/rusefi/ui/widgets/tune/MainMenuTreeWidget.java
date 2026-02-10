@@ -34,7 +34,8 @@ public class MainMenuTreeWidget {
     private String lastSearchSelectedKey = null;
     private Consumer<SubMenuModel> onSelect;
 
-    public MainMenuTreeWidget(UIContext uiContext, IniFileModel model) {
+    public MainMenuTreeWidget(UIContext uiContext) {
+        IniFileModel model = uiContext.iniFileState.getIniFileModel();
         for (MenuModel menu : model.getMenus()) {
             DefaultMutableTreeNode menuNode = new DefaultMutableTreeNode(menu.getName());
             root.add(menuNode);
@@ -65,14 +66,14 @@ public class MainMenuTreeWidget {
             }
         });
         Font font = tree.getFont();
-        tree.setFont(new Font(font.getName(), font.getStyle(), font.getSize() * 2));
+        tree.setFont(new Font(font.getName(), font.getStyle(), (int)(font.getSize() * 1.2)));
         tree.setRootVisible(false);
 
-        ImageIcon setupIcon = AutoupdateUtil.loadIcon("setup48.png");
-        ImageIcon fuelIcon = AutoupdateUtil.loadIcon("fuel48.png");
-        ImageIcon ignitionIcon = AutoupdateUtil.loadIcon("ignition48.png");
-        ImageIcon idleIcon = AutoupdateUtil.loadIcon("idle48.png");
-        ImageIcon crankingIcon = AutoupdateUtil.loadIcon("cranking48.png");
+        ImageIcon setupIcon = scaleIcon(AutoupdateUtil.loadIcon("setup48.png"), 24);
+        ImageIcon fuelIcon = scaleIcon(AutoupdateUtil.loadIcon("fuel48.png"), 24);
+        ImageIcon ignitionIcon = scaleIcon(AutoupdateUtil.loadIcon("ignition48.png"), 24);
+        ImageIcon idleIcon = scaleIcon(AutoupdateUtil.loadIcon("idle48.png"), 24);
+        ImageIcon crankingIcon = scaleIcon(AutoupdateUtil.loadIcon("cranking48.png"), 24);
 
         tree.setCellRenderer(new DefaultTreeCellRenderer() {
             @Override
@@ -343,6 +344,11 @@ public class MainMenuTreeWidget {
             }
         }
         return null;
+    }
+
+    private static ImageIcon scaleIcon(ImageIcon icon, int size) {
+        if (icon == null) return null;
+        return new ImageIcon(icon.getImage().getScaledInstance(size, size, java.awt.Image.SCALE_SMOOTH));
     }
 
     public JPanel getContentPane() {
