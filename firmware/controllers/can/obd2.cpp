@@ -48,6 +48,7 @@ static const int16_t supportedPids0120[] = {
 
 static const int16_t supportedPids2140[] = {
 	PID_FUEL_AIR_RATIO_1,
+	PID_BAROMETRIC_PRESSURE,
 	-1
 };
 
@@ -165,7 +166,11 @@ void handleGetDataRequest(const CANRxFrame& rx, size_t busIndex) {
 
 		obdSendPacket(1, pid, 4, scaled << 16, busIndex);
 		break;
-	} case PID_FUEL_RATE: {
+	} case PID_BAROMETRIC_PRESSURE:
+    	obdSendValue(_1_MODE, pid, 1, Sensor::getOrZero(SensorType::BarometricPressure), busIndex);
+    	break;
+	
+	case PID_FUEL_RATE: {
 
 #ifdef MODULE_ODOMETER
 		float gPerSecond = engine->module<TripOdometer>()->getConsumptionGramPerSecond();
