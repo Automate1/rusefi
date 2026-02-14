@@ -723,7 +723,9 @@ void TriggerWaveform::initializeTriggerWaveform(operation_mode_e triggerOperatio
 	    initializeMitsubishi4g63Cam(this);
 		break;
 
-	case trigger_type_e::TT_UNUSED29:
+	case trigger_type_e::TT_NISSAN_K11:
+	  initializeNissanK11(this);
+    break;
 	case trigger_type_e::TT_HONDA_CBR_600:
 		configureHondaCbr600(this);
 		break;
@@ -829,6 +831,8 @@ void TriggerWaveform::initializeTriggerWaveform(operation_mode_e triggerOperatio
 		initializeJeepRenix66_2_2(this);
 		break;
 
+	case trigger_type_e::TT_UNUSED_95:
+	case trigger_type_e::TT_UNUSED_96:
 	case trigger_type_e::TT_SUBARU_7_6_CRANK:
 		initializeSubaru7_6_crankOnly(this);
 		break;
