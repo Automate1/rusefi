@@ -1,0 +1,54 @@
+name: Create Clean PR Branch
+on:
+  workflow_dispatch:
+    inputs:
+      source_branch:
+        description: 'Branch containing your changes'
+        required: true
+        default: 'dev'
+
+jobs:
+  create-pr-branch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.inputs.source_branch }}
+
+      - name: Generate PR Branch Relative to rusefi
+        run: |
+          # 1. Identity Setup
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # 2. Define the new branch name
+          PR_BRANCH_NAME="${{ github.event.inputs.source_branch }}_for_PR"
+          echo "Target PR Branch: $PR_BRANCH_NAME"
+
+          # 3. Add rusefi as Upstream and fetch
+          git remote add upstream https://github.com//rusefi/rusefi
+          git fetch upstream master
+
+          # 4. Create the new branch starting exactly at rusefi/master
+          # Use -B to overwrite the _for_PR branch if it already exists
+          git checkout -B "$PR_BRANCH_NAME" upstream/master
+
+          # 5. Pull in all the files from your source branch
+          # This stages only the differences between rusefi and your code
+          git checkout ${{ github.event.inputs.source_branch }} -- .
+
+          # 6. Commit and Push the new branch
+          git add -A
+          git commit -m "Cleaned changes for PR to rusefi"
+          git push origin "$PR_BRANCH_NAME" --force
+
+      - name: Summary
+        run: |
+          echo "### ✅ PR Branch Created" >> $GITHUB_STEP_SUMMARY
+          echo "Source: \`${{ github.event.inputs.source_branch }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "New PR Branch: \`${{ github.event.inputs.source_branch }}_for_PR\`" >> $GITHUB_STEP_SUMMARY
+          echo "Compare against: \`rusefi/master\`" >> $GITHUB_STEP_SUMMARY
