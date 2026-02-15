@@ -8,11 +8,9 @@ import com.rusefi.binaryprotocol.ShortcutsHelper;
 import com.rusefi.core.MessagesCentral;
 import com.rusefi.core.net.ConnectionAndMeta;
 import com.rusefi.io.CommandQueue;
-import com.rusefi.io.ConnectionStatusLogic;
 import com.rusefi.io.LinkManager;
 import com.rusefi.io.serial.BaudRateHolder;
 import com.rusefi.maintenance.StLinkFlasher;
-import com.rusefi.tools.TunerStudioHelper;
 import com.rusefi.ui.*;
 import com.rusefi.ui.console.MainFrame;
 import com.rusefi.ui.console.TabbedPanel;
@@ -55,8 +53,6 @@ public class ConsoleUI {
     public static final String TITLE = "rusEFI";
     public static EngineSnifferPanel engineSnifferPanel;
 
-    static Frame staticFrame;
-
     private final TabbedPanel tabbedPane;
     private final String port;
 
@@ -67,11 +63,7 @@ public class ConsoleUI {
      */
     private final Map<Component, ActionListener> tabSelectedListeners = new HashMap<>();
 
-    public static Frame getFrame() {
-        return staticFrame;
-    }
-
-    public ConsoleUI(String port) {
+    public ConsoleUI(String port, SerialPortType serialPortType) {
         LinkManager linkManager = uiContext.getLinkManager();
 
         CommandQueue.ERROR_HANDLER = e -> SwingUtilities.invokeLater(() -> {
@@ -84,8 +76,8 @@ public class ConsoleUI {
         tabbedPane.setCornerComponent(connectionStatus);
         this.port = port;
         MainFrame mainFrame = new MainFrame(this, tabbedPane);
-        ConsoleUI.staticFrame = mainFrame.getFrame().getFrame();
-        setFrameIcon(ConsoleUI.staticFrame);
+        JFrame frame = mainFrame.getFrame().getFrame();
+        setFrameIcon(frame);
         log.info("Console " + UiVersion.CONSOLE_VERSION);
 
         log.info("Hardware: " + StLinkFlasher.getHardwareKind());
@@ -106,18 +98,14 @@ public class ConsoleUI {
 
         uiContext.DetachedRepositoryINSTANCE.init(getConfig().getRoot().getChild("detached"));
         uiContext.DetachedRepositoryINSTANCE.load();
-        if (!linkManager.isLogViewer())
+        if (!linkManager.isLogViewer()) {
             tabbedPane.addTab("Gauges", new GaugesPanel(uiContext, getConfig().getRoot().getChild("gauges")).getContent());
 
-        if (!linkManager.isLogViewer()) {
             MessagesPane messagesPane = new MessagesPane(uiContext, getConfig().getRoot().getChild("messages"));
             tabbedPaneAdd("Messages", messagesPane.getContent(), messagesPane.getTabSelectedListener());
-        }
-        if (!linkManager.isLogViewer()) {
-            tabbedPane.addTab("Bench Test", new BenchTestPane(uiContext, getConfig()).getContent());
-        }
 
-        if (!linkManager.isLogViewer()) {
+            tabbedPane.addTab("Bench Test", new BenchTestPane(uiContext, getConfig()).getContent());
+
             LuaScriptPanel luaScriptPanel = new LuaScriptPanel(uiContext, getConfig().getRoot().getChild("lua"));
             tabbedPaneAdd("Lua Scripting", luaScriptPanel.getPanel(), luaScriptPanel.getTabSelectedListener());
         }
@@ -146,6 +134,7 @@ console live data tab is broken #8402
             tabbedPane.addTab("Live Data", LiveDataPane.createLazy(uiContext).getContent());
  */
             tabbedPane.addTab("Tuning", new TuningPane(uiContext).getContent());
+            tabbedPane.addTab("Device", new DevicePane(uiContext, port, serialPortType).getContent());
         }
 
         if (!linkManager.isLogViewer() && false) // todo: fix it & better name?
@@ -235,7 +224,6 @@ console live data tab is broken #8402
             }
         }
         JustOneInstance.onStart();
-        TunerStudioHelper.maybeCloseTs();
 
         try {
             boolean isPortDefined = args.length > 0;
@@ -255,7 +243,7 @@ console live data tab is broken #8402
             }
 
             if (isPortDefined) {
-                new ConsoleUI(port);
+                new ConsoleUI(port, SerialPortType.Unknown);
             } else {
                 for (String p : LinkManager.getCommPorts())
                     MessagesCentral.getInstance().postMessage(Launcher.class, "Available port: " + p);
