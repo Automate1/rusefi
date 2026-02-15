@@ -38,14 +38,20 @@ jobs:
           # 3. Bring in your files from the source branch
           git checkout ${{ github.event.inputs.source_branch }} -- .
           
-          # 4. RESET THE WORKFLOWS FOLDER to match upstream exactly
+          # 4. EXPLICITLY CLEAN WORKFLOWS
+          # This removes the problematic 'gethla' and all other local changes
           git checkout upstream/master -- .github/workflows
-          
-          # 5. COMMIT EVERYTHING EXCEPT WORKFLOWS
-          # The ':!.github/workflows' tells git to ignore that specific path
+          git clean -fd .github/workflows
+
+          # 5. COMMIT ONLY NON-WORKFLOW FILES
+          # We stage everything then explicitly UNSTAGE the workflows folder
           git add .
-          git reset .github/workflows
-          git commit -m "Update from ${{ github.event.inputs.source_branch }} (Single Commit)" || echo "No changes to commit"
+          git reset HEAD .github/workflows
+          
+          # Final check: if 'git status' shows anything in .github/workflows, we kill it
+          git checkout -- .github/workflows
+
+          git commit -m "Update from ${{ github.event.inputs.source_branch }} (Single Commit)" || echo "No changes"
 
           # 6. Final Push
           git push origin "$PR_BRANCH_NAME" --force
@@ -53,4 +59,4 @@ jobs:
       - name: Summary
         run: |
           echo "### ✅ Clean PR Branch Created" >> $GITHUB_STEP_SUMMARY
-          echo "Changes to \`.github/workflows\` were ignored to satisfy securit
+          echo "Bypassed security by enforcing upstream parity on all workflow files." >> $GITHUB_STEP_SUMMARY
