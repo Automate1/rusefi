@@ -12,7 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      actions: write  # <--- THIS IS THE FIX: Allows pushing changes to .github/workflows/
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -42,7 +41,11 @@ jobs:
           # This stages only the differences between rusefi and your code
           git checkout ${{ github.event.inputs.source_branch }} -- .
 
-          # 6. Commit and Push the new branch
+          # 6. REMOVE WORKFLOWS from the new branch
+          # This ensures the bot doesn't trigger the security error
+          git rm -rf .github/workflows || true
+
+          # 7. Commit and Push the new branch
           git add -A
           git commit -m "Cleaned changes for PR to rusefi"
           git push origin "$PR_BRANCH_NAME" --force
