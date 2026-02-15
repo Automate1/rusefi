@@ -1,9 +1,9 @@
-name: Create Clean PR Branch
+name: Create Single Commit PR Branch
 on:
   workflow_dispatch:
     inputs:
       source_branch:
-        description: 'Branch containing your changes'
+        description: 'Branch with your code'
         required: true
         default: 'dev'
 
@@ -19,40 +19,34 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event.inputs.source_branch }}
 
-      - name: Generate PR Branch Relative to rusefi
+      - name: Reset to Latest Upstream
         run: |
-          # 1. Identity Setup
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # 2. Define the new branch name
           PR_BRANCH_NAME="${{ github.event.inputs.source_branch }}_for_PR"
-          echo "Target PR Branch: $PR_BRANCH_NAME"
 
-          # 3. Add rusefi as Upstream and fetch
-          git remote add upstream https://github.com//rusefi/rusefi
+          # 1. Get the absolute latest from rusefi
+          git remote add upstream https://github.com/rusefi/rusefi
           git fetch upstream master
 
-          # 4. Create the new branch starting exactly at rusefi/master
-          # Use -B to overwrite the _for_PR branch if it already exists
+          # 2. Force the new branch to start EXACTLY at the current upstream master
           git checkout -B "$PR_BRANCH_NAME" upstream/master
 
-          # 5. Pull in all the files from your source branch
-          # This stages only the differences between rusefi and your code
+          # 3. Bring over your code changes from your source branch
           git checkout ${{ github.event.inputs.source_branch }} -- .
 
-          # 6. REMOVE WORKFLOWS from the new branch
-          # This ensures the bot doesn't trigger the security error
+          # 4. Strip workflows (to avoid security/cleanliness issues)
           git rm -rf .github/workflows || true
 
-          # 7. Commit and Push the new branch
+          # 5. Commit as one single 'Delta'
           git add -A
-          git commit -m "Cleaned changes for PR to rusefi"
+          git commit -m "Update from ${{ github.event.inputs.source_branch }} (Single Commit)"
+
+          # 6. Force push to your fork
           git push origin "$PR_BRANCH_NAME" --force
 
       - name: Summary
         run: |
-          echo "### ✅ PR Branch Created" >> $GITHUB_STEP_SUMMARY
-          echo "Source: \`${{ github.event.inputs.source_branch }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "New PR Branch: \`${{ github.event.inputs.source_branch }}_for_PR\`" >> $GITHUB_STEP_SUMMARY
-          echo "Compare against: \`rusefi/master\`" >> $GITHUB_STEP_SUMMARY
+          echo "### ✅ PR Branch Updated" >> $GITHUB_STEP_SUMMARY
+          echo "Branch \`$PR_BRANCH_NAME\` is now exactly 1 commit ahead of rusefi/master." >> $GITHUB_STEP_SUMMARY
