@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      workflows: write  # <--- THIS IS THE FIX: Allows pushing changes to .github/workflows/
+      actions: write  # <--- THIS IS THE FIX: Allows pushing changes to .github/workflows/
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
