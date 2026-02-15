@@ -35,28 +35,22 @@ jobs:
           git checkout -B "$PR_BRANCH_NAME" upstream/master
           git submodule update --init --recursive
 
-          # 3. Bring in your files from the source branch
-          git checkout ${{ github.event.inputs.source_branch }} -- .
+          # 3. Carefully bring in ONLY the non-workflow files
+          # This 'checkout' brings over files but ignores the workflows folder entirely
+          git checkout ${{ github.event.inputs.source_branch }} -- . ':!.github/workflows'
           
-          # 4. EXPLICITLY CLEAN WORKFLOWS
-          # This removes the problematic 'gethla' and all other local changes
-          git checkout upstream/master -- .github/workflows
-          git clean -fd .github/workflows
+          # 4. Cleanup any stray untracked files left over (like that gethla folder)
+          git clean -fd .github/workflows || true
 
-          # 5. COMMIT ONLY NON-WORKFLOW FILES
-          # We stage everything then explicitly UNSTAGE the workflows folder
-          git add .
-          git reset HEAD .github/workflows
-          
-          # Final check: if 'git status' shows anything in .github/workflows, we kill it
-          git checkout -- .github/workflows
-
-          git commit -m "Update from ${{ github.event.inputs.source_branch }} (Single Commit)" || echo "No changes"
+          # 5. Commit only the changes made
+          # Because we used a path exclusion in step 3, workflows should be identical to upstream
+          git add -A
+          git commit -m "Update from ${{ github.event.inputs.source_branch }} (Single Commit)" || echo "No changes to commit"
 
           # 6. Final Push
           git push origin "$PR_BRANCH_NAME" --force
 
       - name: Summary
         run: |
-          echo "### ✅ Clean PR Branch Created" >> $GITHUB_STEP_SUMMARY
-          echo "Bypassed security by enforcing upstream parity on all workflow files." >> $GITHUB_STEP_SUMMARY
+          echo "### ✅ PR Branch Created (Workflows Preserved)" >> $GITHUB_STEP_SUMMARY
+          echo "Bypassed security errors by excluding the \`.github/workflows\` folder from your changes." >> $GITHUB_STEP_SUMMARY
