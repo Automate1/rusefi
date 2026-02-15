@@ -27,30 +27,31 @@ jobs:
 
           PR_BRANCH_NAME="${{ github.event.inputs.source_branch }}_for_PR"
 
-          # 1. Fetch latest from official rusefi
+          # 1. Fetch latest official rusefi
           git remote add upstream https://github.com/rusefi/rusefi
           git fetch upstream master
 
-          # 2. Start fresh from the upstream master state
+          # 2. Start from official upstream/master
           git checkout -B "$PR_BRANCH_NAME" upstream/master
           git submodule update --init --recursive
 
-          # 3. Carefully bring in ONLY the non-workflow files
-          # This 'checkout' brings over files but ignores the workflows folder entirely
-          git checkout ${{ github.event.inputs.source_branch }} -- . ':!.github/workflows'
+          # 3. FORCE GIT TO IGNORE THE WORKFLOWS DIRECTORY
+          # We add it to the local exclude file so 'git add' can't see it
+          echo ".github/workflows" >> .git/info/exclude
           
-          # 4. Cleanup any stray untracked files left over (like that gethla folder)
-          git clean -fd .github/workflows || true
+          # 4. Bring in your files from the source branch
+          # Using the exclusion pathspec again for double-safety
+          git checkout ${{ github.event.inputs.source_branch }} -- . ':!.github/workflows'
 
-          # 5. Commit only the changes made
-          # Because we used a path exclusion in step 3, workflows should be identical to upstream
-          git add -A
-          git commit -m "Update from ${{ github.event.inputs.source_branch }} (Single Commit)" || echo "No changes to commit"
+          # 5. Commit only the non-workflow changes
+          # We stage everything; git will ignore .github/workflows because of step 3
+          git add .
+          git commit -m "Update from ${{ github.event.inputs.source_branch }} (Single Commit)" || echo "No changes"
 
-          # 6. Final Push
+          # 6. Force push
           git push origin "$PR_BRANCH_NAME" --force
 
       - name: Summary
         run: |
-          echo "### ✅ PR Branch Created (Workflows Preserved)" >> $GITHUB_STEP_SUMMARY
-          echo "Bypassed security errors by excluding the \`.github/workflows\` folder from your changes." >> $GITHUB_STEP_SUMMARY
+          echo "### ✅ PR Branch Created" >> $GITHUB_STEP_SUMMARY
+          echo "Excluded \`.github/workflows\` and the \`gethla\` gitlink to bypass security blocks." >> $GITHUB_STEP_SUMMARY
