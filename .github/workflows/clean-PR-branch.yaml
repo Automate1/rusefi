@@ -16,45 +16,43 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          # Fetch all history and submodules recursively
           fetch-depth: 0
           submodules: recursive
           ref: ${{ github.event.inputs.source_branch }}
 
-      - name: Build PR Branch Relative to Upstream
+      - name: Build PR Branch
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           PR_BRANCH_NAME="${{ github.event.inputs.source_branch }}_for_PR"
 
-          # 1. Fetch the latest from official rusefi
-          git remote add upstream https://github.com/rusefi/rusefi
+          # 1. Fetch latest official rusefi
+          git remote add upstream https://github.com
           git fetch upstream master
 
-          # 2. Create the PR branch based on the latest official master
+          # 2. Start from official master
           git checkout -B "$PR_BRANCH_NAME" upstream/master
-
-          # 3. Sync submodules to the official upstream state
           git submodule update --init --recursive
 
-          # 4. Overwrite files with your code changes only (excluding workflows)
-          # The -- . flag copies files without dragging the old commit history
+          # 3. Carefully bring over your changes
+          # We use 'git checkout' for the whole repo BUT immediately 
+          # restore the upstream workflows so they aren't marked as changed/deleted
           git checkout ${{ github.event.inputs.source_branch }} -- .
+          
+          # 4. RESTORE the original upstream workflows
+          # This tells Git: "Use the files from rusefi/master for this folder"
+          # This prevents them from showing up as deleted or modified in the PR.
+          git checkout upstream/master -- .github/workflows
 
-          # 5. Clean up workflows to avoid security errors and PR clutter
-          git rm -rf .github/workflows || true
-
-          # 6. Commit as a single delta
-          # This commit will only show changes relative to rusefi/master
+          # 5. Commit the delta
           git add -A
           git commit -m "Update from ${{ github.event.inputs.source_branch }} (Single Commit)"
 
-          # 7. Force push the PR branch to your fork
+          # 6. Force push
           git push origin "$PR_BRANCH_NAME" --force
 
       - name: Summary
         run: |
-          echo "### ✅ PR Branch Created with Submodules" >> $GITHUB_STEP_SUMMARY
-          echo "Branch \`$PR_BRANCH_NAME\` is ready for PR to \`rusefi/master\`." >> $GITHUB_STEP_SUMMARY
-          echo "Submodules were synced to match the upstream state." >> $GITHUB_STEP_SUMMARY
+          echo "### ✅ Clean PR Branch Created" >> $GITHUB_STEP_SUMMARY
+          echo "The PR will no longer show workflow deletions." >> $GITHUB_STEP_SUMMARY
