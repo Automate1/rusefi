@@ -14,7 +14,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: [actions/checkout@v4](https://github.com)
         with:
           fetch-depth: 0
           submodules: recursive
@@ -27,32 +27,30 @@ jobs:
 
           PR_BRANCH_NAME="${{ github.event.inputs.source_branch }}_for_PR"
 
-          # 1. Fetch latest official rusefi
+          # 1. Fetch latest from official rusefi
           git remote add upstream https://github.com/rusefi/rusefi
           git fetch upstream master
 
-          # 2. Start from official master
+          # 2. Start fresh from the upstream master state
           git checkout -B "$PR_BRANCH_NAME" upstream/master
           git submodule update --init --recursive
 
-          # 3. Bring over your code changes
+          # 3. Bring in your files from the source branch
           git checkout ${{ github.event.inputs.source_branch }} -- .
           
-          # 4. RESET THE WORKFLOWS FOLDER ENTIRELY
-          # This deletes any new workflows you added and restores official ones.
-          # This ensures zero changes to .github/workflows in the final PR.
+          # 4. RESET THE WORKFLOWS FOLDER to match upstream exactly
           git checkout upstream/master -- .github/workflows
           
-          # 5. Force-remove any stray workflow files that might be staged
-          git rm -rf --cached .github/workflows || true
+          # 5. COMMIT EVERYTHING EXCEPT WORKFLOWS
+          # The ':!.github/workflows' tells git to ignore that specific path
+          git add .
+          git reset .github/workflows
+          git commit -m "Update from ${{ github.event.inputs.source_branch }} (Single Commit)" || echo "No changes to commit"
 
-          # 6. Commit and Push
-          # Now there are 0 changes to workflows, so the security error is bypassed.
-          git add -A
-          git commit -m "Update from ${{ github.event.inputs.source_branch }} (Single Commit)"
+          # 6. Final Push
           git push origin "$PR_BRANCH_NAME" --force
 
       - name: Summary
         run: |
           echo "### ✅ Clean PR Branch Created" >> $GITHUB_STEP_SUMMARY
-          echo "All new or modified workflows were excluded to allow the push." >> $GITHUB_STEP_SUMMARY
+          echo "Changes to \`.github/workflows\` were ignored to satisfy securit
