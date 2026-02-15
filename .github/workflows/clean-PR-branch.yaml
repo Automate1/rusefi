@@ -35,24 +35,24 @@ jobs:
           git checkout -B "$PR_BRANCH_NAME" upstream/master
           git submodule update --init --recursive
 
-          # 3. Carefully bring over your changes
-          # We use 'git checkout' for the whole repo BUT immediately 
-          # restore the upstream workflows so they aren't marked as changed/deleted
+          # 3. Bring over your code changes
           git checkout ${{ github.event.inputs.source_branch }} -- .
           
-          # 4. RESTORE the original upstream workflows
-          # This tells Git: "Use the files from rusefi/master for this folder"
-          # This prevents them from showing up as deleted or modified in the PR.
+          # 4. RESET THE WORKFLOWS FOLDER ENTIRELY
+          # This deletes any new workflows you added and restores official ones.
+          # This ensures zero changes to .github/workflows in the final PR.
           git checkout upstream/master -- .github/workflows
+          
+          # 5. Force-remove any stray workflow files that might be staged
+          git rm -rf --cached .github/workflows || true
 
-          # 5. Commit the delta
+          # 6. Commit and Push
+          # Now there are 0 changes to workflows, so the security error is bypassed.
           git add -A
           git commit -m "Update from ${{ github.event.inputs.source_branch }} (Single Commit)"
-
-          # 6. Force push
           git push origin "$PR_BRANCH_NAME" --force
 
       - name: Summary
         run: |
           echo "### ✅ Clean PR Branch Created" >> $GITHUB_STEP_SUMMARY
-          echo "The PR will no longer show workflow deletions." >> $GITHUB_STEP_SUMMARY
+          echo "All new or modified workflows were excluded to allow the push." >> $GITHUB_STEP_SUMMARY
