@@ -16,37 +16,45 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          # Fetch all history and submodules recursively
           fetch-depth: 0
+          submodules: recursive
           ref: ${{ github.event.inputs.source_branch }}
 
-      - name: Reset to Latest Upstream
+      - name: Build PR Branch Relative to Upstream
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           PR_BRANCH_NAME="${{ github.event.inputs.source_branch }}_for_PR"
 
-          # 1. Get the absolute latest from rusefi
+          # 1. Fetch the latest from official rusefi
           git remote add upstream https://github.com/rusefi/rusefi
           git fetch upstream master
 
-          # 2. Force the new branch to start EXACTLY at the current upstream master
+          # 2. Create the PR branch based on the latest official master
           git checkout -B "$PR_BRANCH_NAME" upstream/master
 
-          # 3. Bring over your code changes from your source branch
+          # 3. Sync submodules to the official upstream state
+          git submodule update --init --recursive
+
+          # 4. Overwrite files with your code changes only (excluding workflows)
+          # The -- . flag copies files without dragging the old commit history
           git checkout ${{ github.event.inputs.source_branch }} -- .
 
-          # 4. Strip workflows (to avoid security/cleanliness issues)
+          # 5. Clean up workflows to avoid security errors and PR clutter
           git rm -rf .github/workflows || true
 
-          # 5. Commit as one single 'Delta'
+          # 6. Commit as a single delta
+          # This commit will only show changes relative to rusefi/master
           git add -A
           git commit -m "Update from ${{ github.event.inputs.source_branch }} (Single Commit)"
 
-          # 6. Force push to your fork
+          # 7. Force push the PR branch to your fork
           git push origin "$PR_BRANCH_NAME" --force
 
       - name: Summary
         run: |
-          echo "### ✅ PR Branch Updated" >> $GITHUB_STEP_SUMMARY
-          echo "Branch \`$PR_BRANCH_NAME\` is now exactly 1 commit ahead of rusefi/master." >> $GITHUB_STEP_SUMMARY
+          echo "### ✅ PR Branch Created with Submodules" >> $GITHUB_STEP_SUMMARY
+          echo "Branch \`$PR_BRANCH_NAME\` is ready for PR to \`rusefi/master\`." >> $GITHUB_STEP_SUMMARY
+          echo "Submodules were synced to match the upstream state." >> $GITHUB_STEP_SUMMARY
