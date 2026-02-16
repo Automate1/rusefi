@@ -66,9 +66,10 @@ public class ConsoleUI {
     public ConsoleUI(String port, SerialPortType serialPortType) {
         LinkManager linkManager = uiContext.getLinkManager();
 
-        CommandQueue.ERROR_HANDLER = e -> SwingUtilities.invokeLater(() -> {
-            throw new IllegalStateException("Connectivity error", e);
-        });
+        CommandQueue.ERROR_HANDLER = e -> {
+            log.error("Connectivity error", e);
+            linkManager.restart();
+        };
 
         ConnectionStatusIcon connectionStatus = new ConnectionStatusIcon(linkManager);
 
@@ -103,8 +104,6 @@ public class ConsoleUI {
 
             MessagesPane messagesPane = new MessagesPane(uiContext, getConfig().getRoot().getChild("messages"));
             tabbedPaneAdd("Messages", messagesPane.getContent(), messagesPane.getTabSelectedListener());
-
-            tabbedPane.addTab("Bench Test", new BenchTestPane(uiContext, getConfig()).getContent());
 
             LuaScriptPanel luaScriptPanel = new LuaScriptPanel(uiContext, getConfig().getRoot().getChild("lua"));
             tabbedPaneAdd("Lua Scripting", luaScriptPanel.getPanel(), luaScriptPanel.getTabSelectedListener());
