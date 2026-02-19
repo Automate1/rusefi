@@ -31,30 +31,27 @@ jobs:
           git remote add upstream https://github.com/rusefi/rusefi
           git fetch upstream master
 
-          # 2. Start fresh from the upstream master state
+          # 2. Force the PR branch to be a CLONE of upstream/master
           git checkout -B "$PR_BRANCH_NAME" upstream/master
-          git submodule update --init --recursive
-
-          # 3. Bring in your files from the source branch, but EXCLUDE workflows
-          # This prevents the security error while bringing your code
-          git checkout ${{ github.event.inputs.source_branch }} -- . ':!.github/workflows'
           
-          # 4. RESTORE THE OFFICIAL WORKFLOWS
-          # This puts the files back on the disk exactly as they are in rusefi/master.
-          # Because they are identical to the base, they won't show as 'deleted' or 'changed'.
-          git checkout upstream/master -- .github/workflows
+          # 3. Use Pathspec Magic to bring over your code BUT lock workflows
+          # The ':!.github' tells Git: "Don't even look at this folder"
+          git checkout ${{ github.event.inputs.source_branch }} -- . ':!.github'
 
-          # 5. Commit the delta
-          # This stages everything. Since .github/workflows matches upstream/master,
-          # git sees 0 changes for that folder.
+          # 4. HARD RESET the workflow folder to the exact Upstream Hash
+          # This overwrites any local 'Test' branch metadata for gethla
+          git reset upstream/master -- .github
+          git checkout upstream/master -- .github
+          
+          # 5. Commit the result
+          # If this commit has 0 changes in .github, the push will succeed
           git add -A
           git commit -m "Update from ${{ github.event.inputs.source_branch }} (Single Commit)" || echo "No changes"
 
-          # 6. Final Push to your fork
+          # 6. Final Push
           git push origin "$PR_BRANCH_NAME" --force
 
       - name: Summary
         run: |
           echo "### ✅ PR Branch Created" >> $GITHUB_STEP_SUMMARY
-          echo "Branch \`$PR_BRANCH_NAME\` is now ready." >> $GITHUB_STEP_SUMMARY
-          echo "Workflows are synced with \`rusefi/master\` to prevent 'deleted' status in PR." >> $GITHUB_STEP_SUMMARY
+          echo "Bypassed \`gethla\` error by locking \`.github\` to the official \`rusefi/master\` state." >> $GITHUB_STEP_SUMMARY
