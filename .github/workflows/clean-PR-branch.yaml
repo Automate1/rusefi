@@ -27,25 +27,26 @@ jobs:
 
           PR_BRANCH_NAME="${{ github.event.inputs.source_branch }}_for_PR"
 
-          # 1. Fetch the official rusefi master
+          # 1. Fetch latest official rusefi
           git remote add upstream https://github.com/rusefi/rusefi
           git fetch upstream master
 
-          # 2. Start exactly at rusefi/master (including submodule pointers)
+          # 2. Force the PR branch to be a mirror of upstream/master
+          # This ensures the 'gethla' submodule pointer is correct from the start
           git checkout -B "$PR_BRANCH_NAME" upstream/master
           
-          # 3. Bring in your files but EXCLUDE the .github folder from the disk
+          # 3. Bring in your files but EXCLUDE the .github folder entirely
+          # This prevents your branch's submodule pointers from leaking in
           git checkout ${{ github.event.inputs.source_branch }} -- . ':!.github'
 
-          # 4. SELECTIVE STAGING
-          # We add all changes BUT explicitly exclude the .github folder
-          # This ensures the 'gethla' pointer is never updated in this commit
-          git add .
-          git reset -- .github/
-          git checkout -- .github/
-
-          # 5. Commit the delta
-          # If there are 0 changes to .github, the push will succeed
+          # 4. CRITICAL: Force the index for the workflows folder to match upstream exactly
+          # This specifically unstages any metadata changes to submodules like gethla
+          git reset upstream/master -- .github/workflows
+          git checkout upstream/master -- .github/workflows
+          
+          # 5. Commit the result
+          # If there are 0 changes to .github/workflows, the push will succeed
+          git add -A
           git commit -m "Update from ${{ github.event.inputs.source_branch }} (Single Commit)" || echo "No changes"
 
           # 6. Final Push
@@ -53,5 +54,5 @@ jobs:
 
       - name: Summary
         run: |
-          echo "### ✅ PR Branch Created" >> $GITHUB_STEP_SUMMARY
-          echo "Bypassed \`gethla\` by excluding the \`.github\` directory from the commit." >> $GITHUB_STEP_SUMMARY
+          echo "### ✅ PR Branch Created Successfully" >> $GITHUB_STEP_SUMMARY
+          echo "Bypassed \`gethla\` error by enforcing 100% metadata parity for \`.github/workflows\`." >> $GITHUB_STEP_SUMMARY
