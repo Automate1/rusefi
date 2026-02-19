@@ -175,12 +175,15 @@ runs:
         echo "DEFAULT_TUNE_OUTPUT_FOLDER=$(realpath --relative-to=${{inputs.rusefi_dir}}/firmware ${{inputs.sim_output}})/" >> $GITHUB_ENV
         source ${{inputs.rusefi_dir}}/firmware/config/boards/common_script_read_meta_env.inc "${{inputs.meta_info}}"
         cd ${{inputs.rusefi_dir}}/firmware
+        # BOARD_DIR value is assigned within sourced common_script_read_meta_env.inc based on meta_info location
         ABSOLUTE_BOARD_DIR=${{github.workspace}}/$BOARD_DIR
+        echo "ABSOLUTE_BOARD_DIR=[$ABSOLUTE_BOARD_DIR] META_OUTPUT_ROOT_FOLDER=[$META_OUTPUT_ROOT_FOLDER]"
         # sometimes absolute path is simpler
         echo "ABSOLUTE_BOARD_DIR=$ABSOLUTE_BOARD_DIR" >> $GITHUB_ENV
         # todo: why do we require relative path exactly?
         BOARD_DIR=$(realpath --relative-to=. "${{github.workspace}}/$BOARD_DIR")
         BOARD_META_PATH=$(realpath --relative-to=. "${{github.workspace}}/$BOARD_META_PATH")
+        echo "BOARD_META_PATH=[$BOARD_META_PATH] BOARD_DIR=[$BOARD_DIR]"
         echo "BOARD_DIR=$BOARD_DIR" >> $GITHUB_ENV
         echo "BOARD_META_PATH=$BOARD_META_PATH" >> $GITHUB_ENV
         echo "SHORT_BOARD_NAME=$SHORT_BOARD_NAME" >> $GITHUB_ENV
@@ -358,7 +361,7 @@ runs:
         cd ${{inputs.rusefi_dir}}/simulator/
         ./build/rusefi_simulator 10
         mkdir -p ${{inputs.sim_output}}canned-tunes
-        ./write_tune.sh ${ABSOLUTE_BOARD_DIR}/generated/tunerstudio/generated/rusefi_${SHORT_BOARD_NAME}.ini
+        ./write_tune.sh ${META_OUTPUT_ROOT_FOLDER}/tunerstudio/generated/rusefi_${SHORT_BOARD_NAME}.ini
 
     - name: Add Tune to Commit
       if: ${{ inputs.run_simulator == 'true' && inputs.push == 'true' }}
@@ -411,6 +414,12 @@ runs:
         fi
         echo "[$OUT]"
 
+    - name: Quick Rebase
+      if: ${{ inputs.push == 'true' }}
+      shell: bash
+      run: |
+        ${{inputs.rusefi_dir}}/.github/workflows/bin/git-fast-clean-update.sh
+
     - name: Push
       if: ${{ inputs.push == 'true' }}
       uses: ad-m/github-push-action@master
@@ -438,35 +447,35 @@ runs:
       if: ${{ contains(inputs.artifacts, 'bin') }}
       uses: actions/upload-artifact@v4
       with:
-        name: rusefi.bin
+        name: rusefi_${{env.SHORT_BOARD_NAME}}.bin
         path: ${{inputs.rusefi_dir}}/firmware/deliver/rusefi*.bin
 
     - name: Upload github action srec artifact
       if: ${{ contains(inputs.artifacts, 'srec') }}
       uses: actions/upload-artifact@v4
       with:
-        name: rusefi_update.srec
+        name: rusefi_update_${{env.SHORT_BOARD_NAME}}.srec
         path: ${{inputs.rusefi_dir}}/firmware/build/rusefi.srec
 
     - name: Upload github action hex artifact
       if: ${{ contains(inputs.artifacts, 'hex') }}
       uses: actions/upload-artifact@v4
       with:
-        name: rusefi.hex
+        name: rusefi_${{env.SHORT_BOARD_NAME}}.hex
         path: ${{inputs.rusefi_dir}}/firmware/build/rusefi*.hex
 
     - name: Upload github action list artifact
       if: ${{ contains(inputs.artifacts, 'list') }}
       uses: actions/upload-artifact@v4
       with:
-        name: rusefi.list
+        name: rusefi_${{env.PROJECT_BOARD}}.list
         path: ${{inputs.rusefi_dir}}/firmware/build/rusefi*.list
 
     - name: Upload github action map artifact
       if: ${{ contains(inputs.artifacts, 'map') }}
       uses: actions/upload-artifact@v4
       with:
-        name: rusefi.map
+        name: rusefi_${{env.PROJECT_BOARD}}.map
         path: ${{inputs.rusefi_dir}}/firmware/build/rusefi*.map
 
     # sad: we have duplication with build-firmware.yaml :(
@@ -482,14 +491,14 @@ runs:
       if: ${{ contains(inputs.artifacts, 'elf') }}
       uses: actions/upload-artifact@v4
       with:
-        name: rusefi.txt
+        name: rusefi_${{env.PROJECT_BOARD}}.txt
         path: ${{inputs.rusefi_dir}}/firmware/build/rusefi*.txt
 
     - name: Upload github action elf artifact
       if: ${{ contains(inputs.artifacts, 'elf') }}
       uses: actions/upload-artifact@v4
       with:
-        name: rusefi.elf
+        name: rusefi_${{env.PROJECT_BOARD}}.elf
         path: ${{inputs.rusefi_dir}}/firmware/build/rusefi*.elf
 
     - name: Upload github action bootloader bin artifact
