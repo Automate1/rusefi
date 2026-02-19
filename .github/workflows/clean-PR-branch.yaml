@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       source_branch:
-        description: 'Branch with your code'
+        description: 'Branch with your code (on Automate1/rusefi)'
         required: true
         default: 'dev'
 
@@ -27,31 +27,34 @@ jobs:
 
           PR_BRANCH_NAME="${{ github.event.inputs.source_branch }}_for_PR"
 
-          # 1. Fetch latest official rusefi
-          git remote add upstream https://github.com/rusefi/rusefi
+          # 1. Fetch latest official rusefi (the comparison target)
+          git remote add upstream https://github.com
           git fetch upstream master
 
-          # 2. Start from official upstream/master
+          # 2. Create the PR branch based on the official rusefi master
           git checkout -B "$PR_BRANCH_NAME" upstream/master
-          git submodule update --init --recursive
-
-          # 3. FORCE GIT TO IGNORE THE WORKFLOWS DIRECTORY
-          # We add it to the local exclude file so 'git add' can't see it
-          echo ".github/workflows" >> .git/info/exclude
           
-          # 4. Bring in your files from the source branch
-          # Using the exclusion pathspec again for double-safety
+          # 3. Physically wipe the local workflows folder
+          # This prevents any 'gethla' metadata from leaking into the staging area
+          rm -rf .github/workflows
+
+          # 4. Pull in your code changes but IGNORE the workflows path
           git checkout ${{ github.event.inputs.source_branch }} -- . ':!.github/workflows'
 
-          # 5. Commit only the non-workflow changes
-          # We stage everything; git will ignore .github/workflows because of step 3
-          git add .
+          # 5. RE-STAGING SAFETY:
+          # Force the index to match the upstream/master exactly for workflows
+          git reset upstream/master -- .github/workflows
+          
+          # 6. Final commit (contains 0 changes to workflows)
+          git add -A
           git commit -m "Update from ${{ github.event.inputs.source_branch }} (Single Commit)" || echo "No changes"
 
-          # 6. Force push
+          # 7. Push to YOUR fork (Automate1/rusefi)
+          # This uses the default 'origin' which is your fork
           git push origin "$PR_BRANCH_NAME" --force
 
       - name: Summary
         run: |
-          echo "### ✅ PR Branch Created" >> $GITHUB_STEP_SUMMARY
-          echo "Excluded \`.github/workflows\` and the \`gethla\` gitlink to bypass security blocks." >> $GITHUB_STEP_SUMMARY
+          echo "### ✅ PR Branch Created on Your Fork" >> $GITHUB_STEP_SUMMARY
+          echo "Target: \`Automate1/rusefi/$PR_BRANCH_NAME\`" >> $GITHUB_STEP_SUMMARY
+          echo "Comparison Base: \`rusefi/rusefi/master\`" >> $GITHUB_STEP_SUMMARY
