@@ -28,7 +28,7 @@ jobs:
           PR_BRANCH_NAME="${{ github.event.inputs.source_branch }}_for_PR"
 
           # 1. Fetch latest official rusefi (the comparison target)
-          git remote add upstream https://github.com
+          git remote add upstream https://github.com/rusefi/rusefi
           git fetch upstream master
 
           # 2. Create the PR branch based on the official rusefi master
