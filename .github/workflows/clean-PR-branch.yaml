@@ -27,31 +27,33 @@ jobs:
 
           PR_BRANCH_NAME="${{ github.event.inputs.source_branch }}_for_PR"
 
-          # 1. Fetch latest official rusefi
+          # 1. Fetch the official rusefi master
           git remote add upstream https://github.com/rusefi/rusefi
           git fetch upstream master
 
-          # 2. Force the PR branch to be a CLONE of upstream/master
+          # 2. Reset the current state to EXACTLY match upstream/master
+          # This includes the exact submodule pointers for gethla
           git checkout -B "$PR_BRANCH_NAME" upstream/master
           
-          # 3. Use Pathspec Magic to bring over your code BUT lock workflows
-          # The ':!.github' tells Git: "Don't even look at this folder"
+          # 3. OVERLAY your source branch code onto the index
+          # This brings your code in but keeps the 'master' version of .github
+          # The ':!.github' is a 'top-level' exclusion
           git checkout ${{ github.event.inputs.source_branch }} -- . ':!.github'
 
-          # 4. HARD RESET the workflow folder to the exact Upstream Hash
-          # This overwrites any local 'Test' branch metadata for gethla
+          # 4. TRIPLE CHECK: Force the index for .github to match upstream exactly
+          # This removes any accidental metadata changes to submodules like gethla
           git reset upstream/master -- .github
           git checkout upstream/master -- .github
-          
-          # 5. Commit the result
-          # If this commit has 0 changes in .github, the push will succeed
+
+          # 5. Commit the changes
+          # If there are 0 changes to .github, the push will succeed
           git add -A
           git commit -m "Update from ${{ github.event.inputs.source_branch }} (Single Commit)" || echo "No changes"
 
-          # 6. Final Push
+          # 6. Final Push to your fork
           git push origin "$PR_BRANCH_NAME" --force
 
       - name: Summary
         run: |
           echo "### ✅ PR Branch Created" >> $GITHUB_STEP_SUMMARY
-          echo "Bypassed \`gethla\` error by locking \`.github\` to the official \`rusefi/master\` state." >> $GITHUB_STEP_SUMMARY
+          echo "Bypassed \`gethla\` error by enforcing 100% metadata parity for \`.github\`." >> $GITHUB_STEP_SUMMARY
