@@ -12,7 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      actions: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -32,24 +31,28 @@ jobs:
           git remote add upstream https://github.com/rusefi/rusefi
           git fetch upstream master
 
-          # 2. Force the PR branch to be a 1:1 mirror of upstream/master
+          # 2. Force the PR branch to match official rusefi master exactly
           git checkout -B "$PR_BRANCH_NAME" upstream/master
-          git submodule update --init --recursive
           
-          # 3. THE MAGIC FIX: Tell Git to ignore ANY changes to the .github directory
-          # This "locks" the workflows and the gethla submodule pointer
-          git ls-files -z .github | xargs -0 git update-index --assume-unchanged
-          # Also specifically lock the submodule pointer itself
-          git update-index --assume-unchanged .github/workflows/hw-ci/gethla
-
-          # 4. Bring in your files from the source branch
-          # We use the pathspec exclusion as a second layer of defense
-          git checkout ${{ github.event.inputs.source_branch }} -- . ':!.github'
+          # 3. USE READ-TREE TO OVERLAY YOUR CODE
+          # This command replaces the index with your code but we will 
+          # immediately restore the .github path metadata.
+          git read-tree -m ${{ github.event.inputs.source_branch }}
+          
+          # 4. FORCE-RESTORE THE UPSTREAM .GITHUB METADATA
+          # This ensures the gethla submodule pointer is BIT-FOR-BIT identical to upstream
+          git checkout upstream/master -- .github
+          git reset upstream/master -- .github
 
           # 5. Commit the result
-          # Git will only "see" changes in your code, not in the .github folder
-          git add -A
+          # If .github matches upstream/master perfectly, there is 0 diff, 
+          # and the push will bypass the 'workflows' permission block.
           git commit -m "Update from ${{ github.event.inputs.source_branch }} (Single Commit)" || echo "No changes"
 
           # 6. Final Push
           git push origin "$PR_BRANCH_NAME" --force
+
+      - name: Summary
+        run: |
+          echo "### ✅ PR Branch Created" >> $GITHUB_STEP_SUMMARY
+          echo "Used \`read-tree\` to preserve upstream workflow metadata." >> $GITHUB_STEP_SUMMARY
