@@ -12,6 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -31,28 +32,24 @@ jobs:
           git remote add upstream https://github.com/rusefi/rusefi
           git fetch upstream master
 
-          # 2. Force the PR branch to be a mirror of upstream/master
-          # This ensures the 'gethla' submodule pointer is correct from the start
+          # 2. Force the PR branch to be a 1:1 mirror of upstream/master
           git checkout -B "$PR_BRANCH_NAME" upstream/master
+          git submodule update --init --recursive
           
-          # 3. Bring in your files but EXCLUDE the .github folder entirely
-          # This prevents your branch's submodule pointers from leaking in
+          # 3. THE MAGIC FIX: Tell Git to ignore ANY changes to the .github directory
+          # This "locks" the workflows and the gethla submodule pointer
+          git ls-files -z .github | xargs -0 git update-index --assume-unchanged
+          # Also specifically lock the submodule pointer itself
+          git update-index --assume-unchanged .github/workflows/hw-ci/gethla
+
+          # 4. Bring in your files from the source branch
+          # We use the pathspec exclusion as a second layer of defense
           git checkout ${{ github.event.inputs.source_branch }} -- . ':!.github'
 
-          # 4. CRITICAL: Force the index for the workflows folder to match upstream exactly
-          # This specifically unstages any metadata changes to submodules like gethla
-          git reset upstream/master -- .github/workflows
-          git checkout upstream/master -- .github/workflows
-          
           # 5. Commit the result
-          # If there are 0 changes to .github/workflows, the push will succeed
+          # Git will only "see" changes in your code, not in the .github folder
           git add -A
           git commit -m "Update from ${{ github.event.inputs.source_branch }} (Single Commit)" || echo "No changes"
 
           # 6. Final Push
           git push origin "$PR_BRANCH_NAME" --force
-
-      - name: Summary
-        run: |
-          echo "### ✅ PR Branch Created Successfully" >> $GITHUB_STEP_SUMMARY
-          echo "Bypassed \`gethla\` error by enforcing 100% metadata parity for \`.github/workflows\`." >> $GITHUB_STEP_SUMMARY
