@@ -32,28 +32,27 @@ jobs:
           git remote add upstream https://github.com/rusefi/rusefi
           git fetch upstream master
 
-          # 2. Force the PR branch to match official rusefi master exactly
+          # 2. Start from official rusefi master
           git checkout -B "$PR_BRANCH_NAME" upstream/master
           
-          # 3. USE READ-TREE TO OVERLAY YOUR CODE
-          # This command replaces the index with your code but we will 
-          # immediately restore the .github path metadata.
-          git read-tree -m ${{ github.event.inputs.source_branch }}
-          
-          # 4. FORCE-RESTORE THE UPSTREAM .GITHUB METADATA
-          # This ensures the gethla submodule pointer is BIT-FOR-BIT identical to upstream
-          git checkout upstream/master -- .github
-          git reset upstream/master -- .github
+          # 3. Bring in your files but EXCLUDE the .github folder from the disk
+          # This prevents the 'gethla' metadata from entering the branch
+          git checkout ${{ github.event.inputs.source_branch }} -- . ':!.github'
 
-          # 5. Commit the result
-          # If .github matches upstream/master perfectly, there is 0 diff, 
-          # and the push will bypass the 'workflows' permission block.
+          # 4. EXPLICITLY UNSTAGE THE WORKFLOW FOLDER
+          # This ensures the 'gethla' pointer is exactly what is in upstream/master
+          git reset HEAD .github/
+          git checkout -- .github/
+
+          # 5. COMMIT EVERYTHING EXCEPT WORKFLOWS
+          # The ':!.github' flag ensures the commit object has zero delta for workflows
+          git add . ':!.github'
           git commit -m "Update from ${{ github.event.inputs.source_branch }} (Single Commit)" || echo "No changes"
 
-          # 6. Final Push
+          # 6. Final Push to your fork
           git push origin "$PR_BRANCH_NAME" --force
 
       - name: Summary
         run: |
           echo "### ✅ PR Branch Created" >> $GITHUB_STEP_SUMMARY
-          echo "Used \`read-tree\` to preserve upstream workflow metadata." >> $GITHUB_STEP_SUMMARY
+          echo "Bypassed \`gethla\` by enforcing a Zero-Delta commit for the \`.github\` directory." >> $GITHUB_STEP_SUMMARY
