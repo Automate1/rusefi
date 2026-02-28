@@ -18,6 +18,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Orchestrates layout of calibration dialogs by composing UI widgets
@@ -31,6 +32,12 @@ public class CalibrationDialogWidget {
     private ConfigurationImage workingImage;
     private IniFileModel currentIniFileModel;
     private final List<ExpressionRow> expressionRows = new ArrayList<>();
+    /** Called after each user edit with the current working image, so listeners can re-evaluate their own expressions. */
+    private Consumer<ConfigurationImage> onConfigChange;
+
+    public void setOnConfigChange(Consumer<ConfigurationImage> onConfigChange) {
+        this.onConfigChange = onConfigChange;
+    }
 
     /**
      * Tracks a field row that has visibility or enabled expressions to re-evaluate on config changes.
@@ -107,18 +114,23 @@ public class CalibrationDialogWidget {
                 update(dialog, iniFileModel, ci);
                 return;
             }
+            workingImage = ci != null ? ci.clone() : null;
+
+            Runnable notifyEdit = () -> { if (onConfigChange != null) onConfigChange.accept(workingImage); };
 
             TableModel table = iniFileModel.getTable(key);
             if (table != null) {
                 contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
                 TuningTableView tuningTableView = new TuningTableView(table.getTitle());
-                tuningTableView.displayTable(iniFileModel, table.getTableId(), ci);
+                tuningTableView.displayTable(iniFileModel, table.getTableId(), workingImage);
+                tuningTableView.setOnEdit(notifyEdit);
                 contentPane.add(tuningTableView.getContent());
             } else {
                 CurveModel curve = iniFileModel.getCurves().get(key);
                 if (curve != null) {
                     contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
-                    CurveWidget curveWidget = new CurveWidget(curve, iniFileModel, ci);
+                    CurveWidget curveWidget = new CurveWidget(curve, iniFileModel, workingImage);
+                    curveWidget.setOnEdit(notifyEdit);
                     contentPane.add(curveWidget.getContentPane());
                 }
             }
@@ -129,6 +141,7 @@ public class CalibrationDialogWidget {
 
     private void fillPanel(JPanel container, DialogModel dialogModel, IniFileModel iniFileModel, ConfigurationImage ci) {
         Runnable onChange = this::refreshExpressions;
+        Runnable notifyEdit = () -> { if (onConfigChange != null) onConfigChange.accept(workingImage); };
 
         for (DialogModel.Field field : dialogModel.getFields()) {
             JPanel row;
@@ -178,7 +191,8 @@ public class CalibrationDialogWidget {
 
             CurveModel curve = iniFileModel.getCurves().get(panel.getPanelName());
             if (curve != null) {
-                CurveWidget curveWidget = new CurveWidget(curve, iniFileModel, ci);
+                CurveWidget curveWidget = new CurveWidget(curve, iniFileModel, workingImage);
+                curveWidget.setOnEdit(notifyEdit);
                 JComponent content = curveWidget.getContentPane();
                 CalibrationFieldFactory.applyStyle(content);
                 content.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -189,7 +203,8 @@ public class CalibrationDialogWidget {
             TableModel table = iniFileModel.getTable(panel.getPanelName());
             if (table != null) {
                 TuningTableView tuningTableView = new TuningTableView(table.getTitle());
-                tuningTableView.displayTable(iniFileModel, table.getTableId(), ci);
+                tuningTableView.displayTable(iniFileModel, table.getTableId(), workingImage);
+                tuningTableView.setOnEdit(notifyEdit);
                 JComponent content = tuningTableView.getContent();
                 CalibrationFieldFactory.applyStyle(content);
                 content.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -230,6 +245,9 @@ public class CalibrationDialogWidget {
         }
         contentPane.revalidate();
         contentPane.repaint();
+        if (onConfigChange != null) {
+            onConfigChange.accept(workingImage);
+        }
     }
 
     private void applyExpressionState(ExpressionRow exprRow, IniFileModel iniFileModel, ConfigurationImage ci) {
@@ -245,19 +263,9 @@ public class CalibrationDialogWidget {
         }
     }
 
+    //TODO: inline
     private Boolean evaluateFieldExpression(String expression, IniFileModel iniFileModel, ConfigurationImage ci) {
-        Set<String> varNames = ExpressionEvaluator.extractVariables(expression);
-        Map<String, Double> context = new HashMap<>();
-        for (String varName : varNames) {
-            Optional<IniField> varField = iniFileModel.findIniField(varName);
-            if (varField.isPresent()) {
-                Double value = ci.readNumericValue(varField.get());
-                if (value != null) {
-                    context.put(varName, value);
-                }
-            }
-        }
-        return ExpressionEvaluator.evaluateBooleanExpression(expression, context);
+        return ExpressionEvaluator.evaluateBooleanExpression(expression, iniFileModel, ci);
     }
 
     private static void setComponentsEnabled(Container container, boolean enabled) {
