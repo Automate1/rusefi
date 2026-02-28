@@ -3,8 +3,6 @@ plugins {
   id 'org.gradle.toolchains.foojay-resolver-convention' version '0.8.0'
 }
 
-var rootRelativePath='../'
-
 include ':version'
 project(':version').projectDir = new File(rootRelativePath + 'java_tools/version')
 
@@ -20,8 +18,8 @@ include ':proxy_server'
 // gradle naming convention does not like '_' symbol
 project(':proxy_server').projectDir = new File(rootRelativePath + 'java_tools/proxy_server')
 
-include ':core_io'
-project(':core_io').projectDir = new File(rootRelativePath + 'java_console/shared_io')
+include ':shared_io'
+project(':shared_io').projectDir = new File(rootRelativePath + 'java_console/shared_io')
 include ':core_ui'
 project(':core_ui').projectDir = new File(rootRelativePath + 'java_console/core_ui')
 include ':peak-can-basic'

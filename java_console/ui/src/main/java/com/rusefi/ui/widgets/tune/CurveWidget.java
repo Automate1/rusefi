@@ -43,6 +43,10 @@ public class CurveWidget {
     private String xUnits;
     private int xDigits;
     private int yDigits;
+    private ConfigurationImage imageTarget;
+    private ArrayIniField xBinsField;
+    private ArrayIniField yBinsField;
+    private Runnable onEdit;
 
     public CurveWidget(CurveModel curveModel, IniFileModel iniFileModel, ConfigurationImage ci) {
         table.getTableHeader().setReorderingAllowed(false);
@@ -70,20 +74,34 @@ public class CurveWidget {
 
     private void update(CurveModel curveModel, IniFileModel iniFile, ConfigurationImage ci) {
         this.curveModel = Objects.requireNonNull(curveModel);
-        this.xValues = readArray(curveModel.getxBins(), iniFile, ci);
-        this.yValues = readArray(curveModel.getyBins(), iniFile, ci);
+        this.imageTarget = ci;
 
         IniField xField = iniFile.findIniField(curveModel.getxBins()).get();
         this.xUnits = xField.getUnits();
         this.xDigits = parseDigits(xField.getDigits());
+        this.xBinsField = xField instanceof ArrayIniField ? (ArrayIniField) xField : null;
 
         IniField yField = iniFile.findIniField(curveModel.getyBins()).get();
         this.yDigits = parseDigits(yField.getDigits());
+        this.yBinsField = yField instanceof ArrayIniField ? (ArrayIniField) yField : null;
+
+        this.xValues = readArray(curveModel.getxBins(), iniFile, ci);
+        this.yValues = readArray(curveModel.getyBins(), iniFile, ci);
 
         canvas.setCurve(curveModel, xValues, yValues);
         table.setModel(new CurveTableModel());
         content.revalidate();
         content.repaint();
+    }
+
+    public void setOnEdit(Runnable onEdit) {
+        this.onEdit = onEdit;
+    }
+
+    private void writeBackToImage() {
+        if (imageTarget == null) return;
+        if (xBinsField != null) ConfigurationImageGetterSetter.setArrayValues(xBinsField, imageTarget, xValues);
+        if (yBinsField != null) ConfigurationImageGetterSetter.setArrayValues(yBinsField, imageTarget, yValues);
     }
 
     private int parseDigits(String digits) {
@@ -136,6 +154,7 @@ public class CurveWidget {
         private Double[] y;
 
         private Integer draggingIndex = null;
+        private boolean dragged = false;
 
         public CurveCanvas() {
             setBackground(Color.BLACK);
@@ -143,17 +162,24 @@ public class CurveWidget {
                 @Override
                 public void mousePressed(MouseEvent e) {
                     draggingIndex = findIndex(e.getPoint());
+                    dragged = false;
                 }
 
                 @Override
                 public void mouseReleased(MouseEvent e) {
+                    if (dragged) {
+                        writeBackToImage();
+                        if (onEdit != null) onEdit.run();
+                    }
                     draggingIndex = null;
+                    dragged = false;
                 }
 
                 @Override
                 public void mouseDragged(MouseEvent e) {
                     if (draggingIndex != null) {
                         updatePoint(draggingIndex, e.getPoint());
+                        dragged = true;
                         repaint();
                         table.repaint();
                     }
@@ -359,6 +385,8 @@ public class CurveWidget {
                 }
                 fireTableCellUpdated(rowIndex, columnIndex);
                 canvas.repaint();
+                writeBackToImage();
+                if (onEdit != null) onEdit.run();
             } catch (NumberFormatException ignored) {}
         }
     }
