@@ -233,7 +233,7 @@ $(OBFUSCATED_OUT): .obfuscated-sentinel
 	@touch $@
 
 $(ST_DRIVERS): | $(DRIVERS_FOLDER)
-	wget https://rusefi.com/build_server/st_files/silent_st_drivers2.exe -P $(dir $@)
+	cp ext/rusefi-gha/static-content/silent_st_drivers2.exe $(DRIVERS_FOLDER)
 
 $(DELIVER) $(ARTIFACTS) $(STAGING_FOLDER) $(CONSOLE_FOLDER) $(DRIVERS_FOLDER):
 	mkdir -p $@

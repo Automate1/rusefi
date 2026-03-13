@@ -319,6 +319,187 @@ public class IniDialogTest {
         assertNull(field.getVisibleExpression());
     }
 
+    // -------------------------------------------------------------------------
+    // readoutPanel / readout tests
+    // -------------------------------------------------------------------------
+
+    @Test
+    public void testReadoutPanelFullSpec() {
+        // Full 12-token readout with default single-column layout
+        String string =
+            "readoutPanel = sdCardErrorPanel\n" +
+            "    readout = sd_error, \"FRESULT\", \"\", 0, 20, 0, 0, 1, 1, 0, 0\n";
+
+        RawIniFile lines = IniFileReaderUtil.read(new ByteArrayInputStream(string.getBytes()));
+        IniFileModel model = readLines(lines);
+
+        DialogModel panel = model.getDialogs().get("sdCardErrorPanel");
+        assertNotNull(panel);
+        assertEquals(1, panel.getReadoutColumns());
+        assertEquals(1, panel.getReadouts().size());
+        assertTrue(panel.getIndicators().isEmpty());
+
+        ReadoutModel r = panel.getReadouts().get(0);
+        assertEquals("sd_error",  r.getChannelOrGaugeName());
+        assertEquals("FRESULT",   r.getTitle());
+        assertEquals("",          r.getUnits());
+        assertEquals(0.0,  r.getMin(),       EPS);
+        assertEquals(20.0, r.getMax(),       EPS);
+        assertEquals(0.0,  r.getLowDanger(), EPS);
+        assertEquals(0.0,  r.getLowWarn(),   EPS);
+        assertEquals(1.0,  r.getHighWarn(),  EPS);
+        assertEquals(1.0,  r.getHighDang(),  EPS);
+        assertEquals(0, r.getValDigits());
+        assertEquals(0, r.getLabelDigits());
+    }
+
+    @Test
+    public void testReadoutPanelMultiColumnAndMultipleReadouts() {
+        // Four-column panel with an enable expression (3rd token) and two readouts
+        String string =
+            "readoutPanel = canReWidebandBuildDate, 4, { 1 }\n" +
+            "    readout = canReWidebandVersion, \"Version\", \"\", 150, 255, 159, 160, 162, 162, 0, 0\n" +
+            "    readout = canReWidebandFwDay, \"Day\", \"\", 0, 32, 1, 1, 31, 31, 0, 0\n";
+
+        RawIniFile lines = IniFileReaderUtil.read(new ByteArrayInputStream(string.getBytes()));
+        IniFileModel model = readLines(lines);
+
+        DialogModel panel = model.getDialogs().get("canReWidebandBuildDate");
+        assertNotNull(panel);
+        assertEquals(4, panel.getReadoutColumns());
+        assertEquals(2, panel.getReadouts().size());
+
+        ReadoutModel r0 = panel.getReadouts().get(0);
+        assertEquals("canReWidebandVersion", r0.getChannelOrGaugeName());
+        assertEquals("Version", r0.getTitle());
+        assertEquals(150.0, r0.getMin(),  EPS);
+        assertEquals(255.0, r0.getMax(),  EPS);
+        assertEquals(159.0, r0.getLowDanger(),  EPS);
+        assertEquals(160.0, r0.getLowWarn(),    EPS);
+        assertEquals(162.0, r0.getHighWarn(),   EPS);
+        assertEquals(162.0, r0.getHighDang(),   EPS);
+        assertEquals(0, r0.getValDigits());
+
+        ReadoutModel r1 = panel.getReadouts().get(1);
+        assertEquals("canReWidebandFwDay", r1.getChannelOrGaugeName());
+        assertEquals("Day", r1.getTitle());
+        assertEquals(0.0,  r1.getMin(), EPS);
+        assertEquals(32.0, r1.getMax(), EPS);
+        assertEquals(0, r1.getValDigits());
+    }
+
+    @Test
+    public void testReadoutRefForm() {
+        // Single-name (reference) form — gauge or bare channel name
+        String string =
+            "readoutPanel = myPanel\n" +
+            "    readout = RPMGauge\n";
+
+        RawIniFile lines = IniFileReaderUtil.read(new ByteArrayInputStream(string.getBytes()));
+        IniFileModel model = readLines(lines);
+
+        DialogModel panel = model.getDialogs().get("myPanel");
+        assertNotNull(panel);
+        assertEquals(1, panel.getReadouts().size());
+
+        ReadoutModel r = panel.getReadouts().get(0);
+        assertEquals("RPMGauge", r.getChannelOrGaugeName());
+        assertNull(r.getTitle());
+        assertNull(r.getUnits());
+        assertNull(r.getMin());
+        assertNull(r.getMax());
+        assertEquals(1, r.getValDigits());
+        assertEquals(0, r.getLabelDigits());
+    }
+
+    @Test
+    public void testReadoutPanelSeparatedFromDialog() {
+        // A readoutPanel must not bleed its readouts into an adjacent dialog
+        String string =
+            "readoutPanel = statusPanel\n" +
+            "    readout = engineRpm, \"RPM\", \"rpm\", 0, 8000, 0, 0, 7000, 7500, 0, 0\n" +
+            "dialog = otherDialog, \"Other\"\n" +
+            "    field = \"Field\", someField\n";
+
+        RawIniFile lines = IniFileReaderUtil.read(new ByteArrayInputStream(string.getBytes()));
+        IniFileModel model = readLines(lines);
+
+        DialogModel rPanel = model.getDialogs().get("statusPanel");
+        assertNotNull(rPanel);
+        assertEquals(1, rPanel.getReadouts().size());
+        assertEquals("engineRpm", rPanel.getReadouts().get(0).getChannelOrGaugeName());
+        assertTrue(rPanel.getFields().isEmpty());
+
+        DialogModel other = model.getDialogs().get("otherDialog");
+        assertNotNull(other);
+        assertTrue(other.getReadouts().isEmpty());
+        assertEquals(1, other.getFields().size());
+    }
+
+    // -------------------------------------------------------------------------
+    // dialog gauge entries (gauge = gaugeName)
+    // -------------------------------------------------------------------------
+
+    @Test
+    public void testDialogGaugeEntries() {
+        // Mirrors real-world usage like "dialog = uegoCan0Gauges" with gauge = entries
+        String string =
+            "[GaugeConfigurations]\n" +
+            "gaugeCategory = O2\n" +
+            "afr1Gauge    = afr1,    \"AFR 1\",    \"afr\", 10, 20, 10, 11, 18, 19, 2, 1\n" +
+            "wb1tempGauge = wb1tempC, \"WBO2 Temp\", \"C\",   0, 900, 0,  50, 800, 850, 0, 0\n" +
+            "[SettingContextHelp]\n" +
+            "; SettingContextHelpEnd\n" +
+            "dialog = uegoCan0Gauges\n" +
+            "    gauge = afr1Gauge\n" +
+            "    gauge = wb1tempGauge\n" +
+            "\n" +
+            "dialog = otherDialog, \"Other\"\n" +
+            "    field = \"Some Field\", someField\n";
+
+        RawIniFile lines = IniFileReaderUtil.read(new ByteArrayInputStream(string.getBytes()));
+        IniFileModel model = readLines(lines);
+
+        DialogModel gaugeDialog = model.getDialogs().get("uegoCan0Gauges");
+        assertNotNull(gaugeDialog);
+        assertEquals(2, gaugeDialog.getGaugeNames().size());
+        assertEquals("afr1Gauge",    gaugeDialog.getGaugeNames().get(0));
+        assertEquals("wb1tempGauge", gaugeDialog.getGaugeNames().get(1));
+        assertTrue(gaugeDialog.getFields().isEmpty());
+        assertTrue(gaugeDialog.getReadouts().isEmpty());
+        assertTrue(gaugeDialog.getIndicators().isEmpty());
+
+        // Gauge names must not bleed into the adjacent dialog
+        DialogModel other = model.getDialogs().get("otherDialog");
+        assertNotNull(other);
+        assertTrue(other.getGaugeNames().isEmpty());
+        assertEquals(1, other.getFields().size());
+
+        // The referenced gauge models must be resolvable
+        assertNotNull(model.getGauge("afr1Gauge"));
+        assertEquals("afr1", model.getGauge("afr1Gauge").getChannel());
+        assertNotNull(model.getGauge("wb1tempGauge"));
+        assertEquals("wb1tempC", model.getGauge("wb1tempGauge").getChannel());
+    }
+
+    @Test
+    public void testDialogWithoutGaugesHasEmptyList() {
+        // A plain dialog must return an empty (not null) gaugeNames list
+        String string =
+            "[SettingContextHelp]\n" +
+            "; SettingContextHelpEnd\n" +
+            "dialog = plainDialog, \"Plain\"\n" +
+            "    field = \"F\", f\n";
+
+        RawIniFile lines = IniFileReaderUtil.read(new ByteArrayInputStream(string.getBytes()));
+        IniFileModel model = readLines(lines);
+
+        DialogModel plain = model.getDialogs().get("plainDialog");
+        assertNotNull(plain);
+        assertNotNull(plain.getGaugeNames());
+        assertTrue(plain.getGaugeNames().isEmpty());
+    }
+
     @Test
     public void testGetDialogKeyByTitle() {
         String string = "[Constants]\n" +
