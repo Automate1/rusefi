@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 # Check if an argument is provided
+# Threshold: if total_changed >= threshold, then git add.
 if [ -z "$1" ]; then
     echo "Usage: $0 <pattern> [numberOfChangedLinesThreshold]"
     exit 1
@@ -9,13 +10,15 @@ fi
 pattern=$1
 threshold=$2
 
+echo "Pattern: [$pattern], threshold: [$threshold]"
+
 # Expand the pattern and iterate over files
 # We use a loop to handle potential multiple files matching the pattern
 # and to print the required message.
 # Note: we should handle cases where the pattern might not match anything
 # or where it's a directory.
 
-# Using find to handle potential globbing issues if needed, 
+# Using find to handle potential globbing issues if needed,
 # but simple expansion might be enough if passed with quotes or if handled by shell.
 # However, the requirement says "going over individual files matching pattern".
 
@@ -68,6 +71,7 @@ get_changed_lines() {
 for file in $pattern; do
     if [ -f "$file" ]; then
         total_changed=$(get_changed_lines "$file")
+        # Threshold: if total_changed is greater or equal to threshold, then git add.
         if [ -n "$threshold" ] && [ "$total_changed" -lt "$threshold" ]; then
             echo "skipping $file: $total_changed lines changed (threshold $threshold)"
         else
@@ -78,6 +82,7 @@ for file in $pattern; do
         # If it's a directory, find all files and process them
         find "$file" -type f | while read -r subfile; do
             total_changed=$(get_changed_lines "$subfile")
+            # Threshold: if total_changed is greater or equal to threshold, then git add.
             if [ -n "$threshold" ] && [ "$total_changed" -lt "$threshold" ]; then
                 echo "skipping $subfile: $total_changed lines changed (threshold $threshold)"
             else

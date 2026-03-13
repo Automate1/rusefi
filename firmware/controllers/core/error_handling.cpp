@@ -241,7 +241,9 @@ void errorHandlerShowBootReasonAndErrors() {
 	ErrorCookie cookie = err->Cookie;
 
 	printErrorState();
-	printErrorStack();
+	if (cookie != ErrorCookie::None) {
+		printErrorStack();
+	}
 #endif // EFI_BACKUP_SRAM
 	#undef PRINT
 }
@@ -312,9 +314,11 @@ void errorHandlerWriteReportFile(FIL *fd) {
 			printWdResetCounter();
 #if EFI_BACKUP_SRAM
 			printErrorState();
-			printErrorStack();
+			if (cookie != ErrorCookie::None) {
+				printErrorStack();
+			}
 #endif // EFI_BACKUP_SRAM
-      f_printf(fd, "rusEFI v%d@%u", getRusEfiVersion(), /*do we have a working way to print 64 bit values?!*/(int)SIGNATURE_HASH);
+			f_printf(fd, "rusEFI v%d@%u", getRusEfiVersion(), /*do we have a working way to print 64 bit values?!*/(int)SIGNATURE_HASH);
 			// additional board-specific data
 			onBoardWriteErrorFile(fd);
 			// todo: figure out what else would be useful
@@ -661,6 +665,7 @@ static void firmwareErrorV(ObdCode code, const char *fmt, va_list ap) {
 	criticalShutdown();
 	enginePins.communicationLedPin.setValue(1, /*force*/true);
 #else // EFI_PROD_CODE
+  UNUSED(code);
 
 	// large buffer on stack is risky we better use normal memory
 	static char errorBuffer[200];
