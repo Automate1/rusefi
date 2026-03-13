@@ -3,7 +3,10 @@ package com.rusefi.core;
 import com.devexperts.logging.Logging;
 import com.opensr5.ConfigurationImage;
 import com.opensr5.ini.ExpressionEvaluator;
+import com.opensr5.ini.DialogModel;
+import com.opensr5.ini.FrontPageModel;
 import com.opensr5.ini.GaugeModel;
+import com.opensr5.ini.IndicatorModel;
 import com.opensr5.ini.IniFileModel;
 import com.opensr5.ini.IniMemberNotFound;
 import com.opensr5.ini.TsStringFunction;
@@ -16,9 +19,11 @@ import org.jetbrains.annotations.Nullable;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static com.devexperts.logging.Logging.getLogging;
 import static com.rusefi.core.ByteBufferUtil.littleEndianWrap;
@@ -91,7 +96,54 @@ public interface ISensorHolder {
             }
         }
 
-        // Third pass: resolve string-valued gauge labels (bitStringValue, stringValue)
+        // Third pass: read output channels referenced by any indicator (front-page or dialog
+        // indicatorPanels) that were not already covered by a gauge definition.
+        // Include label variables so bitStringValue() index args (e.g. fuelCutReason) are fetched.
+        Set<String> indicatorVars = new HashSet<>();
+        FrontPageModel frontPage = ini.getFrontPage();
+        if (frontPage != null) {
+            for (IndicatorModel indicator : frontPage.getIndicators()) {
+                indicatorVars.addAll(ExpressionEvaluator.extractVariables(indicator.getExpression()));
+                indicatorVars.addAll(ExpressionEvaluator.extractVariables(indicator.getOnLabel()));
+                indicatorVars.addAll(ExpressionEvaluator.extractVariables(indicator.getOffLabel()));
+            }
+        }
+        for (DialogModel dialog : ini.getDialogs().values()) {
+            for (IndicatorModel indicator : dialog.getIndicators()) {
+                indicatorVars.addAll(ExpressionEvaluator.extractVariables(indicator.getExpression()));
+                indicatorVars.addAll(ExpressionEvaluator.extractVariables(indicator.getOnLabel()));
+                indicatorVars.addAll(ExpressionEvaluator.extractVariables(indicator.getOffLabel()));
+            }
+        }
+        for (String varName : indicatorVars) {
+            if (!outputChannelValues.containsKey(varName)) {
+                Double value = tryReadOutputChannel(response, varName, ini, varName);
+                if (value != null) {
+                    setValue(value, varName);
+                    outputChannelValues.put(varName, value);
+                }
+            }
+        }
+
+        // Fourth pass: fetch output channels referenced by gauge label expressions
+        for (GaugeModel gauge : ini.getGauges().values()) {
+            Set<String> labelVars = new HashSet<>();
+            if (gauge.getTitleValue().isExpression())
+                labelVars.addAll(ExpressionEvaluator.extractVariables(gauge.getTitle()));
+            if (gauge.getUnitsValue().isExpression())
+                labelVars.addAll(ExpressionEvaluator.extractVariables(gauge.getUnits()));
+            for (String varName : labelVars) {
+                if (!outputChannelValues.containsKey(varName)) {
+                    Double value = tryReadOutputChannel(response, varName, ini, varName);
+                    if (value != null) {
+                        setValue(value, varName);
+                        outputChannelValues.put(varName, value);
+                    }
+                }
+            }
+        }
+
+        // Fifth pass: resolve string-valued gauge labels (bitStringValue, stringValue)
         onGaugeLabelsResolved(resolveGaugeLabels(ini, configImage, outputChannelValues));
     }
 
@@ -103,7 +155,7 @@ public interface ISensorHolder {
 
     /**
      * Try to read a named output channel from the response bytes.
-     * @return the value, or null if the channel doesn't exist or has an unsupported type
+     * @return the value, or null if the channel doesn't exist, has an unsupported type, or is out of bounds
      */
     @Nullable
     static Double tryReadOutputChannel(byte[] response, String label, IniFileModel ini, String channelName) {
@@ -111,6 +163,9 @@ public interface ISensorHolder {
             IniField field = ini.getOutputChannel(channelName);
             return readFieldValue(response, label, field);
         } catch (IniMemberNotFound e) {
+            return null;
+        } catch (IllegalArgumentException e) {
+            log.warn("Out of bounds reading output channel " + channelName + ": " + e.getMessage());
             return null;
         }
     }
