@@ -287,10 +287,16 @@ public class BinaryProtocol {
     }
 
     /**
-     * this method patches configuration inside ECU by writing only regions with different content
+     * Patches configuration inside ECU RAM by writing only regions with different content.
+     * Does not burn to flash or update the local configuration image.
      */
-    public void uploadChanges(ConfigurationImage newVersion) {
+    public void uploadChangesWithoutBurn(ConfigurationImage newVersion) {
         ConfigurationImage current = getControllerConfiguration();
+        if (current.getSize() != newVersion.getSize()) {
+            throw new IllegalStateException("Calibration size mismatch: ECU has " + current.getSize()
+                + " bytes but image has " + newVersion.getSize()
+                + " bytes. Calibrations may be from a different firmware version.");
+        }
         // let's have our own copy which no one would be able to change
         newVersion = newVersion.clone();
         int offset = 0;
@@ -310,6 +316,13 @@ public class BinaryProtocol {
 
             offset = range.second;
         }
+    }
+
+    /**
+     * this method patches configuration inside ECU by writing only regions with different content
+     */
+    public void uploadChanges(ConfigurationImage newVersion) {
+        uploadChangesWithoutBurn(newVersion);
         burn();
         setConfigurationImage(newVersion);
     }
